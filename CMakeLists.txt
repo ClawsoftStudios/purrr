@@ -14,6 +14,11 @@ target_compile_definitions(purrr PRIVATE
   $<$<PLATFORM_ID:Windows>:VK_USE_PLATFORM_WIN32_KHR>
 )
 
+target_compile_options(purrr PRIVATE
+  $<$<AND:$<CONFIG:Debug>,$<C_COMPILER_ID:GNU,Clang,AppleClang>>:-Wall -Wextra -Werror -Wpedantic>
+  $<$<AND:$<CONFIG:Debug>,$<C_COMPILER_ID:MSVC>>:/W4 /WX>
+)
+
 string(COMPARE EQUAL ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR} PURRR_INCLUDE_EXAMPLE)
 if(${PURRR_INCLUDE_EXAMPLE})
   add_subdirectory(example/)
