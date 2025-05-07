@@ -16,14 +16,14 @@ int main(void) {
   Purrr_Result result = PURRR_SUCCESS;
 
   Purrr_Context context = {0};
-  CHECK(purrr_create_context(PURRR_VULKAN, (Purrr_Context_Create_Info){
+  CHECK(purrr_create_context(PURRR_VULKAN, (Purrr_Context_Create_Info) {
+    0
+  }, & context));
 
-  }, &context));
-
-  Purrr_Renderer renderer = {0};
-  CHECK(purrr_create_renderer(context, (Purrr_Renderer_Create_Info){
-
-  }, &renderer));
+  Purrr_Renderer renderer = { 0 };
+  CHECK(purrr_create_renderer(context, (Purrr_Renderer_Create_Info) {
+    0
+  }, & renderer));
 
   LCL_DEF(WINDOW_COUNT, 2); // Should be kept below 10
 

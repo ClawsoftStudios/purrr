@@ -23,6 +23,7 @@ Purrr_Result _purrr_free_renderer_vulkan_windows(struct _Purrr_Renderer_Vulkan_W
   if (!windows->swapchains) free(windows->swapchains);
   if (!windows->imageIndices) free(windows->imageIndices);
   if (!windows->results) free(windows->results);
+  if (!windows->stageFlags) free(windows->stageFlags);
 
   return PURRR_SUCCESS;
 }
@@ -43,6 +44,10 @@ Purrr_Result _purrr_resize_renderer_vulkan_windows(struct _Purrr_Renderer_Vulkan
   x(swapchains)
   x(imageIndices)
   x(results)
+  x(stageFlags)
+
+  for (uint32_t i = windows->count; i < windows->capacity; ++i)
+    windows->stageFlags[i] = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
   #undef x
 
@@ -231,7 +236,7 @@ Purrr_Result _purrr_render_renderer_vulkan(_Purrr_Renderer_Vulkan *renderer) {
     .pNext = VK_NULL_HANDLE,
     .waitSemaphoreCount = renderer->windows.activeCount,
     .pWaitSemaphores = renderer->windows.imageSemaphores,
-    .pWaitDstStageMask = (VkPipelineStageFlags[]){ VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT },
+    .pWaitDstStageMask = renderer->windows.stageFlags,
     .commandBufferCount = 1,
     .pCommandBuffers = &renderer->commandBuffer,
     .signalSemaphoreCount = renderer->windows.activeCount,

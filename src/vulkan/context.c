@@ -150,8 +150,8 @@ static Purrr_Result choose_physical_device(VkInstance instance, VkPhysicalDevice
     vkEnumerateDeviceExtensionProperties(device, VK_NULL_HANDLE, &extensionCount, extensions);
 
     bool swapchainSupported = false;
-    for (uint32_t i = 0; i < extensionCount; ++i) {
-      if (strcmp(extensions[i].extensionName, VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0) {
+    for (uint32_t j = 0; j < extensionCount; ++j) {
+      if (strcmp(extensions[j].extensionName, VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0) {
         swapchainSupported = true;
         break;
       }
@@ -200,7 +200,10 @@ static Purrr_Result query_queue_family(VkPhysicalDevice device, uint32_t *graphi
 
   uint32_t count = 0;
   vkGetPhysicalDeviceQueueFamilyProperties(device, &count, VK_NULL_HANDLE);
+
   VkQueueFamilyProperties *queueFamilies = malloc(sizeof(*queueFamilies) * count);
+  if (!queueFamilies) return PURRR_BUY_MORE_RAM;
+
   vkGetPhysicalDeviceQueueFamilyProperties(device, &count, queueFamilies);
 
   for (uint32_t i = 0; i < count; ++i) {

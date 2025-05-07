@@ -103,9 +103,9 @@ static Purrr_Result create_swapchain(VkPhysicalDevice gpu, VkDevice device, VkSu
     surfaceFormat = formats[0];
 
     for (uint32_t i = 0; i < formatCount; ++i) {
-      VkSurfaceFormatKHR format = formats[i];
-      if (format.format == VK_FORMAT_B8G8R8A8_UNORM && format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
-        surfaceFormat = format;
+      VkSurfaceFormatKHR thisFormat = formats[i];
+      if (thisFormat.format == VK_FORMAT_B8G8R8A8_UNORM && thisFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+        surfaceFormat = thisFormat;
         break;
       }
     }
@@ -119,6 +119,8 @@ static Purrr_Result create_swapchain(VkPhysicalDevice gpu, VkDevice device, VkSu
     if (!presentModeCount) return PURRR_INTERNAL_ERROR;
 
     VkPresentModeKHR *presentModes = malloc(sizeof(*presentModes) * presentModeCount);
+    if (!presentModes) return PURRR_BUY_MORE_RAM;
+
     if (vkGetPhysicalDeviceSurfacePresentModesKHR(gpu, surface, &presentModeCount, presentModes) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
 
     for (uint32_t i = 0; i < presentModeCount; ++i) {

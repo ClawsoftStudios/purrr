@@ -21,10 +21,11 @@ typedef struct _Purrr_Renderer_Vulkan {
     VkSwapchainKHR *swapchains;
     uint32_t *imageIndices; // for VkPresentInfoKHR
     VkResult *results;
+    VkPipelineStageFlags *stageFlags;
 
-    size_t capacity;
-    size_t count;
-    size_t activeCount;
+    uint32_t capacity;
+    uint32_t count;
+    uint32_t activeCount;
   } windows;
 } _Purrr_Renderer_Vulkan;
 

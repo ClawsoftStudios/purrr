@@ -1,5 +1,6 @@
 #include "purrr/result.h"
 
+#include <stddef.h>
 #include <assert.h>
 
 const char *purrr_result_as_cstr(Purrr_Result result) {
@@ -13,4 +14,5 @@ const char *purrr_result_as_cstr(Purrr_Result result) {
   }
 
   assert(0 && "Unreachable");
+  return NULL;
 }
