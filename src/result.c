@@ -9,6 +9,7 @@ const char *purrr_result_as_cstr(Purrr_Result result) {
   case PURRR_BUY_MORE_RAM: return "Out of memory";
   case PURRR_SUCCESS: return "Success";
   case PURRR_TRUE: return "True";
+  case PURRR_MINIMIZED: return "Minimized";
   }
 
   assert(0 && "Unreachable");

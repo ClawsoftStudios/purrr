@@ -1,17 +1,16 @@
 #ifndef   __PURRR_VULKAN_CONTEXT_H_
 #define   __PURRR_VULKAN_CONTEXT_H_
 
-#include "vulkan.h"
-
-#include <vulkan/vulkan.h>
+#include "./vulkan.h"
+#include "../internal.h"
 
 typedef struct _Purrr_Context_Vulkan {
   VkInstance instance;
   VkPhysicalDevice gpu;
 
-  uint32_t graphicsQueueFamily;
+  uint32_t queueFamily;
   VkDevice device;
-  VkQueue graphicsQueue;
+  VkQueue queue;
 } _Purrr_Context_Vulkan;
 
 Purrr_Result _purrr_create_context_vulkan(Purrr_Context_Create_Info createInfo, _Purrr_Context_Vulkan **context);

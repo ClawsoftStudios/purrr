@@ -9,6 +9,8 @@ add_library(purrr STATIC ${PURRR_SOURCES})
 target_include_directories(purrr PUBLIC include/)
 target_link_libraries(purrr Vulkan::Vulkan)
 
+set_property(TARGET purrr PROPERTY C_STANDARD 99)
+
 target_compile_definitions(purrr PRIVATE
   $<$<PLATFORM_ID:Windows>:PURRR_PLATFORM_WINDOWS>
   $<$<PLATFORM_ID:Windows>:VK_USE_PLATFORM_WIN32_KHR>

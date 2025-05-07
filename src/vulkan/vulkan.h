@@ -3,6 +3,6 @@
 
 #include "purrr/purrr.h"
 
-void *_purrr_malloc_item_vulkan(size_t size);
+#include <vulkan/vulkan.h>
 
 #endif // __PURRR_VULKAN_H_

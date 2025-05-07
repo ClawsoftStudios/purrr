@@ -4,9 +4,19 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#ifdef    __cplusplus
+#extern "C" {
+#endif // __cplusplus
+
+typedef struct Purrr_Handle *Purrr_Handle;
+
 #include "result.h"
 #include "context.h"
-#include "window.h"
 #include "renderer.h"
+#include "window.h"
+
+#ifdef    __cplusplus
+}
+#endif // __cplusplus
 
 #endif // _PURRR_H_
