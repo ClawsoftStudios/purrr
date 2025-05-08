@@ -53,23 +53,32 @@ int main(void) {
     CHECK(purrr_wait_renderer(renderer));
 
     bool close = true;
-    for (uint32_t i = 0; i < WINDOW_COUNT; ++i) {
-      if (!windows[i]) continue;
 
-      // purrr_should_window_close returns PURRR_INVALID_ARGS_ERROR (-2)
-      // if the window passed to it is invalid, otherwise it returns
-      // either PURRR_SUCCESS (0) or PURRR_TRUE (1) depending on if the
-      // window should close or not.
-      if (!purrr_should_window_close(windows[i])) close = false;
-      else {
-        (void)purrr_destroy_window(windows[i]);
-        windows[i] = NULL;
+    while (1) {
+      close = true;
+
+      for (uint32_t i = 0; i < WINDOW_COUNT; ++i) {
+        if (!windows[i]) continue;
+
+        // purrr_should_window_close returns PURRR_INVALID_ARGS_ERROR (-2)
+        // if the window passed to it is invalid, otherwise it returns
+        // either PURRR_SUCCESS (0) or PURRR_TRUE (1) depending on if the
+        // window should close or not.
+        if (!purrr_should_window_close(windows[i])) close = false;
+        else {
+          (void)purrr_destroy_window(windows[i]);
+          windows[i] = NULL;
+        }
       }
+
+      if (close) break;
+
+      CHECK(purrr_begin_renderer(renderer));
+      if (result == PURRR_INACTIVE) purrr_wait_windows();
+      else break;
     }
 
     if (close) break;
-
-    CHECK(purrr_begin_renderer(renderer));
 
     for (uint32_t i = 0; i < WINDOW_COUNT; ++i) {
       if (!windows[i]) continue;

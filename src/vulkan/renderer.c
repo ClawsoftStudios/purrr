@@ -110,12 +110,9 @@ Purrr_Result _purrr_wait_renderer_vulkan(_Purrr_Renderer_Vulkan *renderer) {
 Purrr_Result _purrr_begin_renderer_vulkan(_Purrr_Renderer_Vulkan *renderer) {
   if (!renderer) return PURRR_INVALID_ARGS_ERROR;
 
-  if (vkResetFences(renderer->context->device, 1, &renderer->fence) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
-
   VkResult vkResult = VK_SUCCESS;
   Purrr_Result result = PURRR_SUCCESS;
 
-  // TODO: Wait until at least one window gets restored
   for (uint32_t i = renderer->windows.activeCount; i < renderer->windows.count; ++i) {
     Purrr_Window realWindow = renderer->windows.windows[i];
     _Purrr_Window_Vulkan *window = realWindow->backendData;
@@ -159,6 +156,10 @@ Purrr_Result _purrr_begin_renderer_vulkan(_Purrr_Renderer_Vulkan *renderer) {
       ++i;
     }
   }
+
+  if (!renderer->windows.activeCount) return PURRR_INACTIVE;
+
+  if (vkResetFences(renderer->context->device, 1, &renderer->fence) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
 
   if (vkResetCommandBuffer(renderer->commandBuffer, 0) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
 

@@ -11,6 +11,7 @@ const char *purrr_result_as_cstr(Purrr_Result result) {
   case PURRR_SUCCESS: return "Success";
   case PURRR_TRUE: return "True";
   case PURRR_MINIMIZED: return "Minimized";
+  case PURRR_INACTIVE: return "Inactive";
   }
 
   assert(0 && "Unreachable");

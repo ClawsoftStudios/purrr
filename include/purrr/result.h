@@ -8,6 +8,7 @@ typedef enum Purrr_Result {
   PURRR_SUCCESS = 0,
   PURRR_TRUE = 1,
   PURRR_MINIMIZED = 2,
+  PURRR_INACTIVE = 3,
 } Purrr_Result;
 
 const char *purrr_result_as_cstr(Purrr_Result result);
