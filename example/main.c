@@ -17,7 +17,10 @@ int main(void) {
 
   Purrr_Context context = {0};
   CHECK(purrr_create_context(PURRR_VULKAN, (Purrr_Context_Create_Info) {
-    0
+    .applicationName = "purrr example",
+    .applicationVersion = PURRR_MAKE_VERSION(0, 1, 0),
+    .engineName = "purrr",
+    .engineVersion = PURRR_VERSION
   }, & context));
 
   Purrr_Renderer renderer = { 0 };

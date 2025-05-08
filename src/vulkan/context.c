@@ -25,10 +25,21 @@ Purrr_Result _purrr_create_context_vulkan(Purrr_Context_Create_Info createInfo, 
   Purrr_Result result = PURRR_SUCCESS;
   if ((result = init()) < PURRR_SUCCESS) return result;
 
+  VkApplicationInfo appInfo = {
+    .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+    .pNext = VK_NULL_HANDLE,
+    .pApplicationName = createInfo.applicationName,
+    .applicationVersion = createInfo.applicationVersion,
+    .pEngineName = createInfo.engineName,
+    .engineVersion = createInfo.engineVersion,
+    .apiVersion = VK_API_VERSION_1_1
+  };
+
   VkInstanceCreateInfo instanceCreateInfo = {
     .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
     .pNext = VK_NULL_HANDLE,
     .flags = 0,
+    .pApplicationInfo = &appInfo,
     .ppEnabledExtensionNames = (const char*const*)sRequiredExtensions,
     .enabledExtensionCount = sizeof(sRequiredExtensions)/sizeof(*sRequiredExtensions),
     .ppEnabledLayerNames = (const char *[]){ "VK_LAYER_KHRONOS_validation" },
