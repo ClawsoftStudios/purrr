@@ -302,6 +302,8 @@ Purrr_Result _purrr_add_renderer_window(_Purrr_Renderer_Vulkan *renderer, Purrr_
 Purrr_Result _purrr_remove_renderer_window(_Purrr_Renderer_Vulkan *renderer, uint32_t index) {
   if (!renderer || renderer->windows.count < index) return PURRR_INVALID_ARGS_ERROR;
 
+  vkDeviceWaitIdle(renderer->context->device);
+
   _Purrr_Context_Vulkan *context = renderer->context;
   vkDestroySemaphore(context->device, renderer->windows.imageSemaphores[index], VK_NULL_HANDLE);
   vkDestroySemaphore(context->device, renderer->windows.renderSemaphores[index], VK_NULL_HANDLE);
