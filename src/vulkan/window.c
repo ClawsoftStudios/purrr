@@ -44,6 +44,8 @@ Purrr_Result _purrr_destroy_window_vulkan(_Purrr_Window_Vulkan *window) {
   _Purrr_Renderer_Vulkan *renderer = window->renderer;
   _Purrr_Context_Vulkan *context = renderer->context;
 
+  vkDeviceWaitIdle(context->device);
+
   destroy_swapchain(window);
 
   if (window->surface) vkDestroySurfaceKHR(context->instance, window->surface, VK_NULL_HANDLE);
