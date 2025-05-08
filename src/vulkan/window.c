@@ -304,6 +304,19 @@ static Purrr_Result create_full_swapchain(_Purrr_Window_Vulkan *window, Purrr_Wi
     if (vkGetSwapchainImagesKHR(context->device, window->swapchain, &window->imageCount, window->images) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
   }
 
+  window->renderSemaphores = malloc(sizeof(*window->renderSemaphores) * window->imageCount);
+  if (!window->renderSemaphores) return PURRR_BUY_MORE_RAM;
+
+  for (uint32_t i = 0; i < window->imageCount; ++i) {
+    VkSemaphoreCreateInfo createInfo = {
+      .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+      .pNext = VK_NULL_HANDLE,
+      .flags = 0
+    };
+
+    if (vkCreateSemaphore(context->device, &createInfo, VK_NULL_HANDLE, &window->renderSemaphores[i]) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
+  }
+
   if ((result = create_image_views(context->device, window->format, window->imageCount, window->images, window->imageViews)) < PURRR_SUCCESS) return result;
   if ((result = create_render_pass(context->device, window->format, &window->renderPass)) < PURRR_SUCCESS) return result;
   if ((result = create_framebuffers(context->device, window->renderPass, window->width, window->height, window->imageCount, window->imageViews, window->framebuffers)) < PURRR_SUCCESS) return result;
@@ -316,6 +329,13 @@ static void destroy_swapchain(_Purrr_Window_Vulkan *window) {
   _Purrr_Context_Vulkan *context = renderer->context;
 
   if (window->swapchain) vkDestroySwapchainKHR(context->device, window->swapchain, VK_NULL_HANDLE);
+
+  if (window->renderSemaphores) {
+    for (uint32_t i = 0; i < window->imageCount; ++i)
+      vkDestroySemaphore(context->device, window->renderSemaphores[i], VK_NULL_HANDLE);
+
+    free(window->renderSemaphores);
+  }
 
   if (window->images) free(window->images);
   if (window->imageViews) {

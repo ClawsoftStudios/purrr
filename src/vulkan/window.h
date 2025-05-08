@@ -18,6 +18,7 @@ struct _Purrr_Window_Vulkan {
 
   VkFormat format;
   uint32_t imageCount;
+  VkSemaphore *renderSemaphores;
   VkImage *images;
   VkImageView *imageViews;
   VkRenderPass renderPass;

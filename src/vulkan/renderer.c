@@ -92,7 +92,6 @@ Purrr_Result _purrr_destroy_renderer_vulkan(_Purrr_Renderer_Vulkan *renderer) {
 
   for (uint32_t i = 0; i < renderer->windows.count; ++i) {
     vkDestroySemaphore(context->device, renderer->windows.imageSemaphores[i], VK_NULL_HANDLE);
-    vkDestroySemaphore(context->device, renderer->windows.renderSemaphores[i], VK_NULL_HANDLE);
   }
 
   _purrr_free_renderer_vulkan_windows(&renderer->windows);
@@ -130,8 +129,8 @@ Purrr_Result _purrr_begin_renderer_vulkan(_Purrr_Renderer_Vulkan *renderer) {
     Purrr_Window realWindow = renderer->windows.windows[i];
     _Purrr_Window_Vulkan *window = realWindow->backendData;
 
-    bool resize = true;
-    for (uint32_t j = 0; j < 2 && resize; ++j) {
+    Purrr_Result continueResult = PURRR_SUCCESS;
+    for (uint32_t j = 0; j < 2 && continueResult == PURRR_SUCCESS; ++j) {
       if (realWindow->width && realWindow->height) {
         vkResult = vkAcquireNextImageKHR(
           renderer->context->device,
@@ -145,17 +144,18 @@ Purrr_Result _purrr_begin_renderer_vulkan(_Purrr_Renderer_Vulkan *renderer) {
 
       if (vkResult == VK_ERROR_OUT_OF_DATE_KHR) {
         if ((result = _purrr_recreate_window_swapchain(realWindow, window)) < PURRR_SUCCESS) return result;
-        resize = result != PURRR_MINIMIZED;
-        if (result == PURRR_MINIMIZED) {
+        if ((continueResult = result) == PURRR_MINIMIZED) {
           if ((result = _purrr_swap_renderer_windows(renderer, i, renderer->windows.activeCount-1)) < PURRR_SUCCESS) return result;
           --renderer->windows.activeCount;
-          // if (i == renderer->windows.activeCount) resize = false;
+          // if (i == renderer->windows.activeCount) continueResult = false;
         }
       } else if (vkResult == VK_SUCCESS || vkResult == VK_SUBOPTIMAL_KHR) {
         ++i;
-        resize = false;
+        continueResult = PURRR_TRUE;
       } else return PURRR_INTERNAL_ERROR;
     }
+
+    if (continueResult == PURRR_TRUE) renderer->windows.renderSemaphores[i-1] = window->renderSemaphores[renderer->windows.imageIndices[i-1]];
   }
 
   if (vkResetCommandBuffer(renderer->commandBuffer, 0) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
@@ -293,7 +293,6 @@ Purrr_Result _purrr_add_renderer_window(_Purrr_Renderer_Vulkan *renderer, Purrr_
   if (realWindow->width && realWindow->height) ++renderer->windows.activeCount;
 
   if (vkCreateSemaphore(renderer->context->device, &semaphoreCreateInfo, VK_NULL_HANDLE, &renderer->windows.imageSemaphores[renderer->windows.count]) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
-  if (vkCreateSemaphore(renderer->context->device, &semaphoreCreateInfo, VK_NULL_HANDLE, &renderer->windows.renderSemaphores[renderer->windows.count]) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
   renderer->windows.swapchains[*index = renderer->windows.count++] = window->swapchain;
 
   return PURRR_SUCCESS;
@@ -306,13 +305,11 @@ Purrr_Result _purrr_remove_renderer_window(_Purrr_Renderer_Vulkan *renderer, uin
 
   _Purrr_Context_Vulkan *context = renderer->context;
   vkDestroySemaphore(context->device, renderer->windows.imageSemaphores[index], VK_NULL_HANDLE);
-  vkDestroySemaphore(context->device, renderer->windows.renderSemaphores[index], VK_NULL_HANDLE);
 
   --renderer->windows.count;
   if (index < renderer->windows.activeCount) --renderer->windows.activeCount;
   Purrr_Window replacementWindow = renderer->windows.windows[index] = renderer->windows.windows[renderer->windows.count];
   renderer->windows.imageSemaphores[index] = renderer->windows.imageSemaphores[renderer->windows.count];
-  renderer->windows.renderSemaphores[index] = renderer->windows.renderSemaphores[renderer->windows.count];
   renderer->windows.swapchains[index] = renderer->windows.swapchains[renderer->windows.count];
   renderer->windows.imageIndices[index] = renderer->windows.imageIndices[renderer->windows.count];
 
