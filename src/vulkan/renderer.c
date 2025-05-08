@@ -150,12 +150,14 @@ Purrr_Result _purrr_begin_renderer_vulkan(_Purrr_Renderer_Vulkan *renderer) {
           // if (i == renderer->windows.activeCount) continueResult = false;
         }
       } else if (vkResult == VK_SUCCESS || vkResult == VK_SUBOPTIMAL_KHR) {
-        ++i;
         continueResult = PURRR_TRUE;
       } else return PURRR_INTERNAL_ERROR;
     }
 
-    if (continueResult == PURRR_TRUE) renderer->windows.renderSemaphores[i-1] = window->renderSemaphores[renderer->windows.imageIndices[i-1]];
+    if (continueResult == PURRR_TRUE) {
+      renderer->windows.renderSemaphores[i] = window->renderSemaphores[renderer->windows.imageIndices[i]];
+      ++i;
+    }
   }
 
   if (vkResetCommandBuffer(renderer->commandBuffer, 0) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
