@@ -206,6 +206,26 @@ Purrr_Result _purrr_renderer_begin_vulkan(_Purrr_Renderer_Vulkan *renderer, Purr
     };
 
     vkCmdBeginRenderPass(renderer->commandBuffer, &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+    VkViewport viewport = {
+      .x = 0,
+      .y = 0,
+      .width = window->width,
+      .height = window->height,
+      .minDepth = 0.0f,
+      .maxDepth = 0.0f
+    };
+
+    VkRect2D scissor = {
+      .extent = {
+        .width = window->width,
+        .height = window->height
+      },
+      .offset = {0}
+    };
+
+    vkCmdSetViewport(renderer->commandBuffer, 0, 1, &viewport);
+    vkCmdSetScissor(renderer->commandBuffer, 0, 1, &scissor);
   } break;
   case _PURRR_OBJECT_RENDER_TARGET: {
     assert(0 && "Unimplemented");
@@ -235,6 +255,14 @@ Purrr_Result _purrr_renderer_bind_buffer_vulkan(_Purrr_Renderer_Vulkan *renderer
   case COUNT_PURRR_BUFFER_TYPES:
   default: return PURRR_INVALID_ARGS_ERROR;
   }
+
+  return PURRR_SUCCESS;
+}
+
+Purrr_Result _purrr_renderer_bind_program_vulkan(_Purrr_Renderer_Vulkan *renderer, _Purrr_Program_Vulkan *program) {
+  if (!renderer || !program) return PURRR_INVALID_ARGS_ERROR;
+
+  vkCmdBindPipeline(renderer->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, program->pipeline);
 
   return PURRR_SUCCESS;
 }

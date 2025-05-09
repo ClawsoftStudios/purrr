@@ -12,8 +12,10 @@
 typedef struct Purrr_Handle *Purrr_Handle;
 
 #include "result.h"
+#include "format.h"
 #include "context.h"
 #include "buffer.h"
+#include "program.h"
 #include "renderer.h"
 #include "window.h"
 

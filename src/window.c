@@ -42,6 +42,8 @@ Purrr_Result purrr_create_window(Purrr_Renderer renderer, Purrr_Window_Create_In
 
   switch (header.backend) {
   case PURRR_VULKAN: {
+    win->context = (Purrr_Context)((_Purrr_Renderer_Vulkan*)renderer)->context;
+
     win->backendData = malloc(sizeof(_Purrr_Window_Vulkan));
     if (!win->backendData) {
       purrr_destroy_window(win);

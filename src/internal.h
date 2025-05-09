@@ -20,7 +20,7 @@ typedef enum _Purrr_Object_Type {
 
 typedef uint8_t _Purrr_Object_Flags;
 typedef enum _Purrr_Object_Flag_Bits {
-  _PURRR_OBJECT_FLAG_RENDER_TARGET = (1<<0),
+  _PURRR_OBJECT_FLAG_RENDER_TARGET = (1<<0), // If set, context must be first field of the object
 } _Purrr_Object_Flag_Bits;
 
 typedef struct _Purrr_Object_Header {
@@ -36,6 +36,8 @@ void _purrr_free_with_header(void *ptr);
 
 
 struct Purrr_Window {
+  Purrr_Context context;
+
   bool shouldClose;
   int width, height;
 

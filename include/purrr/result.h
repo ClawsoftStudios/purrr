@@ -2,6 +2,7 @@
 #define   _PURRR_RESULT_H_
 
 typedef enum Purrr_Result {
+  PURRR_FILE_SYSTEM_ERROR = -4,
   PURRR_INTERNAL_ERROR = -3,
   PURRR_INVALID_ARGS_ERROR = -2,
   PURRR_BUY_MORE_RAM = -1,

@@ -61,6 +61,14 @@ Purrr_Result purrr_renderer_bind_buffer(Purrr_Renderer renderer, Purrr_Buffer bu
   }
 }
 
+Purrr_Result purrr_renderer_bind_program(Purrr_Renderer renderer, Purrr_Program program) {
+  switch (_purrr_get_header(renderer).backend) {
+  case PURRR_VULKAN: return _purrr_renderer_bind_program_vulkan((_Purrr_Renderer_Vulkan*)renderer, (_Purrr_Program_Vulkan*)program);
+  case COUNT_PURRR_BACKENDS:
+  default: return PURRR_INVALID_ARGS_ERROR;
+  }
+}
+
 Purrr_Result purrr_renderer_draw_indexed(Purrr_Renderer renderer, uint32_t indexCount) {
   switch (_purrr_get_header(renderer).backend) {
   case PURRR_VULKAN: return _purrr_renderer_draw_indexed_vulkan((_Purrr_Renderer_Vulkan*)renderer, indexCount);

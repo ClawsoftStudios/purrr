@@ -3,8 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
-// Local definition
-#define LCL_DEF(name, value) enum { name = value }
+#define WINDOW_COUNT 1
 
 #define CHECK(call) \
   if ((result = (call)) < PURRR_SUCCESS) { \
@@ -20,26 +19,27 @@ typedef struct Vertex {
 static Vertex sVertices[] = {
   (Vertex){
     .x = -1.0f, .y = -1.0f,
-    .u =  1.0f, .y =  0.0f,
+    .u =  1.0f, .v =  0.0f,
   },
   (Vertex){
     .x =  1.0f, .y = -1.0f,
-    .u =  0.0f, .y =  0.0f,
+    .u =  0.0f, .v =  0.0f,
   },
   (Vertex){
     .x =  1.0f, .y =  1.0f,
-    .u =  0.0f, .y =  1.0f,
+    .u =  0.0f, .v =  1.0f,
   },
   (Vertex){
     .x = -1.0f, .y =  1.0f,
-    .u =  1.0f, .y =  1.0f,
+    .u =  1.0f, .v =  1.0f,
   }
 };
 
 typedef uint32_t Index;
 
 static Index sIndices[] = {
-  0, 1, 2, 2, 3, 0
+  0, 2, 1,
+  2, 0, 3
 };
 
 int main(void) {
@@ -74,9 +74,8 @@ int main(void) {
     0
   }, & renderer));
 
-  LCL_DEF(WINDOW_COUNT, 2); // Should be kept below 10
-
   Purrr_Window windows[WINDOW_COUNT] = {0};
+  Purrr_Program programs[WINDOW_COUNT] = {0};
 
   {
     char windowTitle[9] = {0};
@@ -90,6 +89,37 @@ int main(void) {
         .height = 1080/WINDOW_COUNT,
         .depth = false
       }, &windows[i]));
+
+      CHECK(purrr_create_program((Purrr_Handle)windows[i], (Purrr_Program_Create_Info){
+        .shaderCount = 2,
+        .shaders = (Purrr_Program_Shader_Info[]){
+          (Purrr_Program_Shader_Info){
+            .type = PURRR_PROGRAM_SHADER_VERTEX,
+            .filepath = "./vertexShader.spv"
+          },
+          (Purrr_Program_Shader_Info){
+            .type = PURRR_PROGRAM_SHADER_FRAGMENT,
+            .filepath = "./fragmentShader.spv"
+          }
+        },
+        .vertexBindingCount = 1,
+        .vertexBindings = (Purrr_Program_Vertex_Binding_Info[]){
+          (Purrr_Program_Vertex_Binding_Info){
+            .stride = sizeof(Vertex),
+            .attributeCount = 2,
+            .attributes = (Purrr_Program_Vertex_Attribute_Info[]){
+              (Purrr_Program_Vertex_Attribute_Info){
+                .format = PURRR_R32G32_SFLOAT,
+                .offset = sizeof(float)*0
+              },
+              (Purrr_Program_Vertex_Attribute_Info){
+                .format = PURRR_R32G32_SFLOAT,
+                .offset = sizeof(float)*2
+              }
+            }
+          }
+        }
+      }, &programs[i]));
     }
   }
 
@@ -135,6 +165,8 @@ int main(void) {
       // window is marked as a render target, therefore it's fine to pass it here
       CHECK(purrr_renderer_begin(renderer, windows[i], PURRR_COLOR(0x181818FF)));
       if (result) {
+        CHECK(purrr_renderer_bind_program(renderer, programs[i]));
+
         CHECK(purrr_renderer_draw_indexed(renderer, sizeof(sIndices) / sizeof(*sIndices)));
 
         CHECK(purrr_renderer_end(renderer));
@@ -146,8 +178,10 @@ int main(void) {
 
   CHECK(purrr_wait_renderer(renderer));
 
-  for (uint32_t i = 0; i < WINDOW_COUNT; ++i)
+  for (uint32_t i = 0; i < WINDOW_COUNT; ++i) {
     (void)purrr_destroy_window(windows[i]);
+    (void)purrr_destroy_program(programs[i]);
+  }
 
   (void)purrr_destroy_renderer(renderer);
 
