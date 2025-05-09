@@ -94,7 +94,7 @@ Purrr_Result _purrr_destroy_context_vulkan(_Purrr_Context_Vulkan *context) {
 
 
 
-Purrr_Result _purrr_context_begin_one_time_command_buffer(_Purrr_Context_Vulkan *context, VkCommandBuffer *cmdBuf) {
+Purrr_Result _purrr_context_begin_one_time_command_buffer_vulkan(_Purrr_Context_Vulkan *context, VkCommandBuffer *cmdBuf) {
   if (!context || !cmdBuf) return PURRR_INVALID_ARGS_ERROR;
 
   VkCommandBufferAllocateInfo allocInfo = {
@@ -119,7 +119,7 @@ Purrr_Result _purrr_context_begin_one_time_command_buffer(_Purrr_Context_Vulkan 
   return PURRR_SUCCESS;
 }
 
-Purrr_Result _purrr_context_submit_one_time_command_buffer(_Purrr_Context_Vulkan *context, VkCommandBuffer cmdBuf) {
+Purrr_Result _purrr_context_submit_one_time_command_buffer_vulkan(_Purrr_Context_Vulkan *context, VkCommandBuffer cmdBuf) {
   if (!context || !cmdBuf) return PURRR_INVALID_ARGS_ERROR;
 
   if (vkEndCommandBuffer(cmdBuf) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;

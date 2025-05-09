@@ -3,6 +3,9 @@
 #include <stdio.h>
 #include <string.h>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "./stb_image.h"
+
 #define WINDOW_COUNT 1
 
 #define CHECK(call) \
@@ -42,6 +45,8 @@ static Index sIndices[] = {
   2, 0, 3
 };
 
+static Purrr_Result load_image(const char *filepath, Purrr_Context context, Purrr_Image *image);
+
 int main(void) {
   Purrr_Result result = PURRR_SUCCESS;
 
@@ -68,6 +73,9 @@ int main(void) {
   }, &indexBuffer));
 
   CHECK(purrr_copy_buffer_data(indexBuffer, sIndices, sizeof(sIndices), 0));
+
+  Purrr_Image image = {0};
+  CHECK(load_image("./chp.png", context, &image));
 
   Purrr_Renderer renderer = { 0 };
   CHECK(purrr_create_renderer(context, (Purrr_Renderer_Create_Info) {
@@ -185,10 +193,35 @@ int main(void) {
 
   (void)purrr_destroy_renderer(renderer);
 
+  (void)purrr_destroy_image(image);
+
   (void)purrr_destroy_buffer(vertexBuffer);
   (void)purrr_destroy_buffer(indexBuffer);
 
   (void)purrr_destroy_context(context);
 
   return 0;
+}
+
+static Purrr_Result load_image(const char *filepath, Purrr_Context context, Purrr_Image *image) {
+  if (!filepath || !context || !image) return PURRR_INVALID_ARGS_ERROR;
+
+  int width, height;
+  stbi_uc *pixels = stbi_load(filepath, &width, &height, NULL, STBI_rgb_alpha);
+  if (!pixels) return PURRR_FILE_SYSTEM_ERROR;
+
+  printf("%s: width: %d, height: %d\n", filepath, width, height);
+
+  Purrr_Result result = PURRR_SUCCESS;
+  if ((result = purrr_create_image(context, (Purrr_Image_Create_Info){
+    .type = PURRR_IMAGE_TEXTURE,
+    .format = PURRR_R8G8B8A8_SRGB,
+    .width = width,
+    .height = height,
+    .pixels = pixels
+  }, image)) < PURRR_SUCCESS) return result;
+
+  stbi_image_free(pixels);
+
+  return PURRR_SUCCESS;
 }

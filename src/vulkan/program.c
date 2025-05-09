@@ -1,10 +1,11 @@
 #include "./program.h"
 
+#include "./format.h"
+
 #include <stdio.h>
 
 #include "window.h"
 
-static VkFormat purrr_format_to_vk_format(Purrr_Format format);
 static VkShaderStageFlagBits shader_type_to_stage(Purrr_Program_Shader_Type type);
 static Purrr_Result read_file(const char *filepath, char **code, uint32_t *codeLength);
 
@@ -67,7 +68,7 @@ Purrr_Result _purrr_create_program_vulkan(Purrr_Handle renderTarget, Purrr_Progr
       attributes[attributeCount++] = (VkVertexInputAttributeDescription){
         .binding = i,
         .location = j,
-        .format = purrr_format_to_vk_format(attribute.format),
+        .format = _purrr_format_to_vk_format(attribute.format),
         .offset = attribute.offset
       };
     }
@@ -283,87 +284,6 @@ Purrr_Result _purrr_destroy_program_vulkan(_Purrr_Program_Vulkan *program) {
 }
 
 
-
-static VkFormat purrr_format_to_vk_format(Purrr_Format format) {
-  switch (format) {
-  case PURRR_R8_UNORM: return VK_FORMAT_R8_UNORM;
-  case PURRR_R8_SNORM: return VK_FORMAT_R8_SNORM;
-  case PURRR_R8_UINT: return VK_FORMAT_R8_UINT;
-  case PURRR_R8_SINT: return VK_FORMAT_R8_SINT;
-  case PURRR_R8_SRGB: return VK_FORMAT_R8_SRGB;
-  case PURRR_R8G8_UNORM: return VK_FORMAT_R8G8_UNORM;
-  case PURRR_R8G8_SNORM: return VK_FORMAT_R8G8_SNORM;
-  case PURRR_R8G8_UINT: return VK_FORMAT_R8G8_UINT;
-  case PURRR_R8G8_SINT: return VK_FORMAT_R8G8_SINT;
-  case PURRR_R8G8_SRGB: return VK_FORMAT_R8G8_SRGB;
-  case PURRR_R8G8B8_UNORM: return VK_FORMAT_R8G8B8_UNORM;
-  case PURRR_R8G8B8_SNORM: return VK_FORMAT_R8G8B8_SNORM;
-  case PURRR_R8G8B8_UINT: return VK_FORMAT_R8G8B8_UINT;
-  case PURRR_R8G8B8_SINT: return VK_FORMAT_R8G8B8_SINT;
-  case PURRR_R8G8B8_SRGB: return VK_FORMAT_R8G8B8_SRGB;
-  case PURRR_B8G8R8_UNORM: return VK_FORMAT_B8G8R8_UNORM;
-  case PURRR_B8G8R8_SNORM: return VK_FORMAT_B8G8R8_SNORM;
-  case PURRR_B8G8R8_UINT: return VK_FORMAT_B8G8R8_UINT;
-  case PURRR_B8G8R8_SINT: return VK_FORMAT_B8G8R8_SINT;
-  case PURRR_B8G8R8_SRGB: return VK_FORMAT_B8G8R8_SRGB;
-  case PURRR_R8G8B8A8_UNORM: return VK_FORMAT_R8G8B8A8_UNORM;
-  case PURRR_R8G8B8A8_SNORM: return VK_FORMAT_R8G8B8A8_SNORM;
-  case PURRR_R8G8B8A8_UINT: return VK_FORMAT_R8G8B8A8_UINT;
-  case PURRR_R8G8B8A8_SINT: return VK_FORMAT_R8G8B8A8_SINT;
-  case PURRR_R8G8B8A8_SRGB: return VK_FORMAT_R8G8B8A8_SRGB;
-  case PURRR_B8G8R8A8_UNORM: return VK_FORMAT_B8G8R8A8_UNORM;
-  case PURRR_B8G8R8A8_SNORM: return VK_FORMAT_B8G8R8A8_SNORM;
-  case PURRR_B8G8R8A8_UINT: return VK_FORMAT_B8G8R8A8_UINT;
-  case PURRR_B8G8R8A8_SINT: return VK_FORMAT_B8G8R8A8_SINT;
-  case PURRR_B8G8R8A8_SRGB: return VK_FORMAT_B8G8R8A8_SRGB;
-  case PURRR_R16_UNORM: return VK_FORMAT_R16_UNORM;
-  case PURRR_R16_SNORM: return VK_FORMAT_R16_SNORM;
-  case PURRR_R16_UINT: return VK_FORMAT_R16_UINT;
-  case PURRR_R16_SINT: return VK_FORMAT_R16_SINT;
-  case PURRR_R16_SFLOAT: return VK_FORMAT_R16_SFLOAT;
-  case PURRR_R16G16_UNORM: return VK_FORMAT_R16G16_UNORM;
-  case PURRR_R16G16_SNORM: return VK_FORMAT_R16G16_SNORM;
-  case PURRR_R16G16_UINT: return VK_FORMAT_R16G16_UINT;
-  case PURRR_R16G16_SINT: return VK_FORMAT_R16G16_SINT;
-  case PURRR_R16G16_SFLOAT: return VK_FORMAT_R16G16_SFLOAT;
-  case PURRR_R16G16B16_UNORM: return VK_FORMAT_R16G16B16_UNORM;
-  case PURRR_R16G16B16_SNORM: return VK_FORMAT_R16G16B16_SNORM;
-  case PURRR_R16G16B16_UINT: return VK_FORMAT_R16G16B16_UINT;
-  case PURRR_R16G16B16_SINT: return VK_FORMAT_R16G16B16_SINT;
-  case PURRR_R16G16B16_SFLOAT: return VK_FORMAT_R16G16B16_SFLOAT;
-  case PURRR_R16G16B16A16_UNORM: return VK_FORMAT_R16G16B16A16_UNORM;
-  case PURRR_R16G16B16A16_SNORM: return VK_FORMAT_R16G16B16A16_SNORM;
-  case PURRR_R16G16B16A16_UINT: return VK_FORMAT_R16G16B16A16_UINT;
-  case PURRR_R16G16B16A16_SINT: return VK_FORMAT_R16G16B16A16_SINT;
-  case PURRR_R16G16B16A16_SFLOAT: return VK_FORMAT_R16G16B16A16_SFLOAT;
-  case PURRR_R32_UINT: return VK_FORMAT_R32_UINT;
-  case PURRR_R32_SINT: return VK_FORMAT_R32_SINT;
-  case PURRR_R32_SFLOAT: return VK_FORMAT_R32_SFLOAT;
-  case PURRR_R32G32_UINT: return VK_FORMAT_R32G32_UINT;
-  case PURRR_R32G32_SINT: return VK_FORMAT_R32G32_SINT;
-  case PURRR_R32G32_SFLOAT: return VK_FORMAT_R32G32_SFLOAT;
-  case PURRR_R32G32B32_UINT: return VK_FORMAT_R32G32B32_UINT;
-  case PURRR_R32G32B32_SINT: return VK_FORMAT_R32G32B32_SINT;
-  case PURRR_R32G32B32_SFLOAT: return VK_FORMAT_R32G32B32_SFLOAT;
-  case PURRR_R32G32B32A32_UINT: return VK_FORMAT_R32G32B32A32_UINT;
-  case PURRR_R32G32B32A32_SINT: return VK_FORMAT_R32G32B32A32_SINT;
-  case PURRR_R32G32B32A32_SFLOAT: return VK_FORMAT_R32G32B32A32_SFLOAT;
-  case PURRR_R64_UINT: return VK_FORMAT_R64_UINT;
-  case PURRR_R64_SINT: return VK_FORMAT_R64_SINT;
-  case PURRR_R64_SFLOAT: return VK_FORMAT_R64_SFLOAT;
-  case PURRR_R64G64_UINT: return VK_FORMAT_R64G64_UINT;
-  case PURRR_R64G64_SINT: return VK_FORMAT_R64G64_SINT;
-  case PURRR_R64G64_SFLOAT: return VK_FORMAT_R64G64_SFLOAT;
-  case PURRR_R64G64B64_UINT: return VK_FORMAT_R64G64B64_UINT;
-  case PURRR_R64G64B64_SINT: return VK_FORMAT_R64G64B64_SINT;
-  case PURRR_R64G64B64_SFLOAT: return VK_FORMAT_R64G64B64_SFLOAT;
-  case PURRR_R64G64B64A64_UINT: return VK_FORMAT_R64G64B64A64_UINT;
-  case PURRR_R64G64B64A64_SINT: return VK_FORMAT_R64G64B64A64_SINT;
-  case PURRR_R64G64B64A64_SFLOAT: return VK_FORMAT_R64G64B64A64_SFLOAT;
-  case COUNT_PURRR_FORMATS:
-  default: return VK_FORMAT_UNDEFINED;
-  }
-}
 
 static VkShaderStageFlagBits shader_type_to_stage(Purrr_Program_Shader_Type type) {
   switch (type) {

@@ -10,13 +10,7 @@ static VkBufferUsageFlags buffer_type_to_usage(Purrr_Buffer_Type type) {
   }
 }
 
-static uint32_t find_memory_type(uint32_t typeFilter, VkMemoryPropertyFlags properties, VkPhysicalDeviceMemoryProperties memProperties) {
-  for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
-    if (typeFilter & (1 << i) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) return i;
-  return UINT32_MAX;
-}
-
-static Purrr_Result create_buffer(_Purrr_Context_Vulkan *context, uint32_t size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer *buffer, VkDeviceMemory *memory) {
+Purrr_Result _purrr_vulkan_create_buffer(_Purrr_Context_Vulkan *context, uint32_t size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer *buffer, VkDeviceMemory *memory) {
   if (!size || !usage || !buffer || !memory) return PURRR_INVALID_ARGS_ERROR;
 
   VkBufferCreateInfo bufferCreateInfo = {
@@ -26,8 +20,8 @@ static Purrr_Result create_buffer(_Purrr_Context_Vulkan *context, uint32_t size,
     .size = size,
     .usage = usage,
     .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-    .queueFamilyIndexCount = 1,
-    .pQueueFamilyIndices = &context->queueFamily
+    .queueFamilyIndexCount = 0,
+    .pQueueFamilyIndices = VK_NULL_HANDLE
   };
 
   if (vkCreateBuffer(context->device, &bufferCreateInfo, VK_NULL_HANDLE, buffer) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
@@ -42,7 +36,7 @@ static Purrr_Result create_buffer(_Purrr_Context_Vulkan *context, uint32_t size,
     .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
     .pNext = VK_NULL_HANDLE,
     .allocationSize = memRequirements.size,
-    .memoryTypeIndex = find_memory_type(memRequirements.memoryTypeBits, properties, memProperties)
+    .memoryTypeIndex = _purrr_vulkan_find_memory_type(memRequirements.memoryTypeBits, properties, memProperties)
   };
 
   if (vkAllocateMemory(context->device, &allocInfo, VK_NULL_HANDLE, memory) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
@@ -68,7 +62,7 @@ Purrr_Result _purrr_create_buffer_vulkan(_Purrr_Context_Vulkan *context, Purrr_B
   buf->size = createInfo.size;
 
   Purrr_Result result = PURRR_SUCCESS;
-  if ((result = create_buffer(context, createInfo.size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | buffer_type_to_usage(createInfo.type), VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &buf->buffer, &buf->memory)) < PURRR_SUCCESS) return result;
+  if ((result = _purrr_vulkan_create_buffer(context, createInfo.size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | buffer_type_to_usage(createInfo.type), VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &buf->buffer, &buf->memory)) < PURRR_SUCCESS) return result;
 
   *buffer = buf;
 
@@ -94,17 +88,17 @@ Purrr_Result _purrr_copy_buffer_data_vulkan(_Purrr_Buffer_Vulkan *dst, void *src
   VkDeviceMemory stagingMemory = VK_NULL_HANDLE;
 
   Purrr_Result result = PURRR_SUCCESS;
-  if ((result = create_buffer(context, size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, &stagingMemory)) < PURRR_SUCCESS) return result;
+  if ((result = _purrr_vulkan_create_buffer(context, size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, &stagingMemory)) < PURRR_SUCCESS) return result;
 
   {
-    void* data = NULL;
-    if (vkMapMemory(context->device, stagingMemory, offset, size, 0, &data) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
+    void *data = NULL;
+    if (vkMapMemory(context->device, stagingMemory, 0, size, 0, &data) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
     memcpy(data, src, size);
     vkUnmapMemory(context->device, stagingMemory);
   }
 
   VkCommandBuffer cmdBuf = VK_NULL_HANDLE;
-  if ((result = _purrr_context_begin_one_time_command_buffer(context, &cmdBuf)) < PURRR_SUCCESS) return result;
+  if ((result = _purrr_context_begin_one_time_command_buffer_vulkan(context, &cmdBuf)) < PURRR_SUCCESS) return result;
 
   VkBufferCopy copyRegion = {
     .srcOffset = 0,
@@ -114,7 +108,7 @@ Purrr_Result _purrr_copy_buffer_data_vulkan(_Purrr_Buffer_Vulkan *dst, void *src
 
   vkCmdCopyBuffer(cmdBuf, stagingBuffer, dst->buffer, 1, &copyRegion);
 
-  if ((result = _purrr_context_submit_one_time_command_buffer(context, cmdBuf)) < PURRR_SUCCESS) return result;
+  if ((result = _purrr_context_submit_one_time_command_buffer_vulkan(context, cmdBuf)) < PURRR_SUCCESS) return result;
 
   vkDestroyBuffer(context->device, stagingBuffer, VK_NULL_HANDLE);
   vkFreeMemory(context->device, stagingMemory, VK_NULL_HANDLE);

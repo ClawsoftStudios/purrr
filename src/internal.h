@@ -45,4 +45,9 @@ struct Purrr_Window {
   void *backendData;
 };
 
+
+
+extern uint32_t _purrr_formats_channel_count[COUNT_PURRR_FORMATS];
+extern uint32_t _purrr_formats_size[COUNT_PURRR_FORMATS];
+
 #endif // __PURRR_INTERNAL_H_
