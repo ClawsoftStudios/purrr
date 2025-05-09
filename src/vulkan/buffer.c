@@ -16,7 +16,7 @@ static uint32_t find_memory_type(uint32_t typeFilter, VkMemoryPropertyFlags prop
   return UINT32_MAX;
 }
 
-static Purrr_Result create_buffer(_Purrr_Context_Vulkan *context, uint32_t size, VkBufferUsageFlags usage, VkBuffer *buffer, VkDeviceMemory *memory) {
+static Purrr_Result create_buffer(_Purrr_Context_Vulkan *context, uint32_t size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer *buffer, VkDeviceMemory *memory) {
   if (!size || !usage || !buffer || !memory) return PURRR_INVALID_ARGS_ERROR;
 
   VkBufferCreateInfo bufferCreateInfo = {
@@ -42,7 +42,7 @@ static Purrr_Result create_buffer(_Purrr_Context_Vulkan *context, uint32_t size,
     .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
     .pNext = VK_NULL_HANDLE,
     .allocationSize = memRequirements.size,
-    .memoryTypeIndex = find_memory_type(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, memProperties)
+    .memoryTypeIndex = find_memory_type(memRequirements.memoryTypeBits, properties, memProperties)
   };
 
   if (vkAllocateMemory(context->device, &allocInfo, VK_NULL_HANDLE, memory) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
@@ -68,7 +68,7 @@ Purrr_Result _purrr_create_buffer_vulkan(_Purrr_Context_Vulkan *context, Purrr_B
   buf->size = createInfo.size;
 
   Purrr_Result result = PURRR_SUCCESS;
-  if ((result = create_buffer(context, createInfo.size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | buffer_type_to_usage(createInfo.type), &buf->buffer, &buf->memory)) < PURRR_SUCCESS) return result;
+  if ((result = create_buffer(context, createInfo.size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | buffer_type_to_usage(createInfo.type), VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &buf->buffer, &buf->memory)) < PURRR_SUCCESS) return result;
 
   *buffer = buf;
 
@@ -94,7 +94,7 @@ Purrr_Result _purrr_copy_buffer_data_vulkan(_Purrr_Buffer_Vulkan *dst, void *src
   VkDeviceMemory stagingMemory = VK_NULL_HANDLE;
 
   Purrr_Result result = PURRR_SUCCESS;
-  if ((result = create_buffer(context, size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, &stagingBuffer, &stagingMemory)) < PURRR_SUCCESS) return result;
+  if ((result = create_buffer(context, size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, &stagingMemory)) < PURRR_SUCCESS) return result;
 
   {
     void* data = NULL;
