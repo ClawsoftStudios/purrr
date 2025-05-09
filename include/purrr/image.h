@@ -16,6 +16,7 @@ typedef struct Purrr_Image_Create_Info {
   Purrr_Format format;
   uint32_t width, height;
   void *pixels;
+  Purrr_Sampler sampler;
 } Purrr_Image_Create_Info;
 
 Purrr_Result purrr_create_image(Purrr_Context context, Purrr_Image_Create_Info createInfo, Purrr_Image *image);

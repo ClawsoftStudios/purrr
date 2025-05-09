@@ -50,7 +50,7 @@ static Purrr_Result load_image(const char *filepath, Purrr_Context context, Purr
 int main(void) {
   Purrr_Result result = PURRR_SUCCESS;
 
-  Purrr_Context context = {0};
+  Purrr_Context context = PURRR_NULL_HANDLE;
   CHECK(purrr_create_context(PURRR_VULKAN, (Purrr_Context_Create_Info) {
     .applicationName = "purrr example",
     .applicationVersion = PURRR_MAKE_VERSION(0, 1, 0),
@@ -58,7 +58,7 @@ int main(void) {
     .engineVersion = PURRR_VERSION
   }, & context));
 
-  Purrr_Buffer vertexBuffer = {0};
+  Purrr_Buffer vertexBuffer = PURRR_NULL_HANDLE;
   CHECK(purrr_create_buffer(context, (Purrr_Buffer_Create_Info){
     .type = PURRR_BUFFER_VERTEX,
     .size = sizeof(sVertices)
@@ -66,7 +66,7 @@ int main(void) {
 
   CHECK(purrr_copy_buffer_data(vertexBuffer, sVertices, sizeof(sVertices), 0));
 
-  Purrr_Buffer indexBuffer = {0};
+  Purrr_Buffer indexBuffer = PURRR_NULL_HANDLE;
   CHECK(purrr_create_buffer(context, (Purrr_Buffer_Create_Info){
     .type = PURRR_BUFFER_INDEX,
     .size = sizeof(sIndices)
@@ -74,7 +74,22 @@ int main(void) {
 
   CHECK(purrr_copy_buffer_data(indexBuffer, sIndices, sizeof(sIndices), 0));
 
-  Purrr_Image image = {0};
+  Purrr_Sampler sampler = PURRR_NULL_HANDLE;
+  CHECK(purrr_create_sampler(context, (Purrr_Sampler_Create_Info){
+    .magFilter = PURRR_LINEAR,
+    .minFilter = PURRR_LINEAR,
+    .mipFilter = PURRR_LINEAR,
+    .addressModeU = PURRR_SAMPLER_ADDRESS_REPEAT,
+    .addressModeV = PURRR_SAMPLER_ADDRESS_REPEAT,
+    .addressModeW = PURRR_SAMPLER_ADDRESS_REPEAT,
+    .mipLodBias = 0.0f,
+    .maxAnisotropy = 0.0f,
+    .minLod = 0.0f,
+    .maxLod = 0.0f,
+    .borderColor = PURRR_SAMPLER_BORDER_FLOAT_TRANSPARENT_BLACK
+  }, &sampler));
+
+  Purrr_Image image = PURRR_NULL_HANDLE;
   CHECK(load_image("./chp.png", context, &image));
 
   Purrr_Renderer renderer = { 0 };
@@ -82,8 +97,8 @@ int main(void) {
     0
   }, & renderer));
 
-  Purrr_Window windows[WINDOW_COUNT] = {0};
-  Purrr_Program programs[WINDOW_COUNT] = {0};
+  Purrr_Window windows[WINDOW_COUNT] = { PURRR_NULL_HANDLE };
+  Purrr_Program programs[WINDOW_COUNT] = { PURRR_NULL_HANDLE };
 
   {
     char windowTitle[9] = {0};
@@ -194,6 +209,7 @@ int main(void) {
   (void)purrr_destroy_renderer(renderer);
 
   (void)purrr_destroy_image(image);
+  (void)purrr_destroy_sampler(sampler);
 
   (void)purrr_destroy_buffer(vertexBuffer);
   (void)purrr_destroy_buffer(indexBuffer);

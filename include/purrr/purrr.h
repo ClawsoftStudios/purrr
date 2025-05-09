@@ -15,6 +15,7 @@ typedef struct Purrr_Handle *Purrr_Handle;
 #include "format.h"
 #include "context.h"
 #include "buffer.h"
+#include "sampler.h"
 #include "image.h"
 #include "program.h"
 #include "renderer.h"
@@ -22,6 +23,12 @@ typedef struct Purrr_Handle *Purrr_Handle;
 
 #ifdef    __cplusplus
 }
+#endif // __cplusplus
+
+#ifdef __cplusplus
+#define PURRR_NULL_HANDLE nullptr
+#else
+#define PURRR_NULL_HANDLE NULL
 #endif // __cplusplus
 
 #endif // _PURRR_H_

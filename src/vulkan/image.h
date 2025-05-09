@@ -3,11 +3,14 @@
 
 #include "./vulkan.h"
 #include "./context.h"
+#include "./sampler.h"
 
 #include "../internal.h"
 
 typedef struct _Purrr_Image_Vulkan {
   _Purrr_Context_Vulkan *context;
+
+  _Purrr_Sampler_Vulkan *sampler;
 
   Purrr_Format format;
   uint32_t width, height;
