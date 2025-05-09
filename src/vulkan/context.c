@@ -68,6 +68,15 @@ Purrr_Result _purrr_create_context_vulkan(Purrr_Context_Create_Info createInfo, 
 
   vkGetDeviceQueue(ctx->device, ctx->queueFamily, 0, &ctx->queue);
 
+  VkCommandPoolCreateInfo commandPoolCreateInfo = {
+    .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+    .pNext = VK_NULL_HANDLE,
+    .flags = 0,
+    .queueFamilyIndex = ctx->queueFamily,
+  };
+
+  if (vkCreateCommandPool(ctx->device, &commandPoolCreateInfo, VK_NULL_HANDLE, &ctx->commandPool) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
+
   *context = ctx;
 
   return PURRR_SUCCESS;
@@ -76,8 +85,61 @@ Purrr_Result _purrr_create_context_vulkan(Purrr_Context_Create_Info createInfo, 
 Purrr_Result _purrr_destroy_context_vulkan(_Purrr_Context_Vulkan *context) {
   if (!context) return PURRR_INVALID_ARGS_ERROR;
 
+  if (context->commandPool) vkDestroyCommandPool(context->device, context->commandPool, VK_NULL_HANDLE);
   if (context->device) vkDestroyDevice(context->device, VK_NULL_HANDLE);
   if (context->instance) vkDestroyInstance(context->instance, VK_NULL_HANDLE);
+
+  return PURRR_SUCCESS;
+}
+
+
+
+Purrr_Result _purrr_context_begin_one_time_command_buffer(_Purrr_Context_Vulkan *context, VkCommandBuffer *cmdBuf) {
+  if (!context || !cmdBuf) return PURRR_INVALID_ARGS_ERROR;
+
+  VkCommandBufferAllocateInfo allocInfo = {
+    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+    .pNext = VK_NULL_HANDLE,
+    .commandPool = context->commandPool,
+    .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+    .commandBufferCount = 1,
+  };
+
+  if (vkAllocateCommandBuffers(context->device, &allocInfo, cmdBuf) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
+
+  VkCommandBufferBeginInfo beginInfo = {
+    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+    .pNext = VK_NULL_HANDLE,
+    .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
+    .pInheritanceInfo = VK_NULL_HANDLE
+  };
+
+  if (vkBeginCommandBuffer(*cmdBuf, &beginInfo) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
+
+  return PURRR_SUCCESS;
+}
+
+Purrr_Result _purrr_context_submit_one_time_command_buffer(_Purrr_Context_Vulkan *context, VkCommandBuffer cmdBuf) {
+  if (!context || !cmdBuf) return PURRR_INVALID_ARGS_ERROR;
+
+  if (vkEndCommandBuffer(cmdBuf) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
+
+  VkSubmitInfo submitInfo = {
+    .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+    .pNext = VK_NULL_HANDLE,
+    .waitSemaphoreCount = 0,
+    .pWaitSemaphores = VK_NULL_HANDLE,
+    .pWaitDstStageMask = VK_NULL_HANDLE,
+    .commandBufferCount = 1,
+    .pCommandBuffers = &cmdBuf,
+    .signalSemaphoreCount = 0,
+    .pSignalSemaphores = VK_NULL_HANDLE
+  };
+
+  if (vkQueueSubmit(context->queue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
+  if (vkQueueWaitIdle(context->queue) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
+
+  vkFreeCommandBuffers(context->device, context->commandPool, 1, &cmdBuf);
 
   return PURRR_SUCCESS;
 }

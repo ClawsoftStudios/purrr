@@ -12,6 +12,36 @@
     return 1; \
   }
 
+typedef struct Vertex {
+  float x, y;
+  float u, v;
+} Vertex;
+
+static Vertex sVertices[] = {
+  (Vertex){
+    .x = -1.0f, .y = -1.0f,
+    .u =  1.0f, .y =  0.0f,
+  },
+  (Vertex){
+    .x =  1.0f, .y = -1.0f,
+    .u =  0.0f, .y =  0.0f,
+  },
+  (Vertex){
+    .x =  1.0f, .y =  1.0f,
+    .u =  0.0f, .y =  1.0f,
+  },
+  (Vertex){
+    .x = -1.0f, .y =  1.0f,
+    .u =  1.0f, .y =  1.0f,
+  }
+};
+
+typedef uint32_t Index;
+
+static Index sIndices[] = {
+  0, 1, 2, 2, 3, 0
+};
+
 int main(void) {
   Purrr_Result result = PURRR_SUCCESS;
 
@@ -22,6 +52,22 @@ int main(void) {
     .engineName = "purrr",
     .engineVersion = PURRR_VERSION
   }, & context));
+
+  Purrr_Buffer vertexBuffer = {0};
+  CHECK(purrr_create_buffer(context, (Purrr_Buffer_Create_Info){
+    .type = PURRR_BUFFER_VERTEX,
+    .size = sizeof(sVertices)
+  }, &vertexBuffer));
+
+  CHECK(purrr_copy_buffer_data(vertexBuffer, sVertices, sizeof(sVertices), 0));
+
+  Purrr_Buffer indexBuffer = {0};
+  CHECK(purrr_create_buffer(context, (Purrr_Buffer_Create_Info){
+    .type = PURRR_BUFFER_INDEX,
+    .size = sizeof(sIndices)
+  }, &indexBuffer));
+
+  CHECK(purrr_copy_buffer_data(indexBuffer, sIndices, sizeof(sIndices), 0));
 
   Purrr_Renderer renderer = { 0 };
   CHECK(purrr_create_renderer(context, (Purrr_Renderer_Create_Info) {
@@ -80,12 +126,17 @@ int main(void) {
 
     if (close) break;
 
+    CHECK(purrr_renderer_bind_buffer(renderer, vertexBuffer, 0));
+    CHECK(purrr_renderer_bind_buffer(renderer, indexBuffer, 0));
+
     for (uint32_t i = 0; i < WINDOW_COUNT; ++i) {
       if (!windows[i]) continue;
 
       // window is marked as a render target, therefore it's fine to pass it here
       CHECK(purrr_renderer_begin(renderer, windows[i], PURRR_COLOR(0x181818FF)));
       if (result) {
+        CHECK(purrr_renderer_draw_indexed(renderer, sizeof(sIndices) / sizeof(*sIndices)));
+
         CHECK(purrr_renderer_end(renderer));
       }
     }
@@ -99,6 +150,10 @@ int main(void) {
     (void)purrr_destroy_window(windows[i]);
 
   (void)purrr_destroy_renderer(renderer);
+
+  (void)purrr_destroy_buffer(vertexBuffer);
+  (void)purrr_destroy_buffer(indexBuffer);
+
   (void)purrr_destroy_context(context);
 
   return 0;

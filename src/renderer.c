@@ -1,4 +1,5 @@
 #include "purrr/purrr.h"
+#include "./internal.h"
 
 #include "vulkan/renderer.h"
 
@@ -45,6 +46,24 @@ Purrr_Result purrr_begin_renderer(Purrr_Renderer renderer) {
 Purrr_Result purrr_renderer_begin(Purrr_Renderer renderer, void *renderTarget, Purrr_Color color) {
   switch (_purrr_get_header(renderer).backend) {
   case PURRR_VULKAN: return _purrr_renderer_begin_vulkan((_Purrr_Renderer_Vulkan*)renderer, renderTarget, color);
+  case COUNT_PURRR_BACKENDS:
+  default: return PURRR_INVALID_ARGS_ERROR;
+  }
+}
+
+Purrr_Result purrr_renderer_bind_buffer(Purrr_Renderer renderer, Purrr_Buffer buffer, uint32_t index) {
+  if (_purrr_get_header(renderer).backend != _purrr_get_header(buffer).backend) return PURRR_INVALID_ARGS_ERROR;
+
+  switch (_purrr_get_header(renderer).backend) {
+  case PURRR_VULKAN: return _purrr_renderer_bind_buffer_vulkan((_Purrr_Renderer_Vulkan*)renderer, (_Purrr_Buffer_Vulkan*)buffer, index);
+  case COUNT_PURRR_BACKENDS:
+  default: return PURRR_INVALID_ARGS_ERROR;
+  }
+}
+
+Purrr_Result purrr_renderer_draw_indexed(Purrr_Renderer renderer, uint32_t indexCount) {
+  switch (_purrr_get_header(renderer).backend) {
+  case PURRR_VULKAN: return _purrr_renderer_draw_indexed_vulkan((_Purrr_Renderer_Vulkan*)renderer, indexCount);
   case COUNT_PURRR_BACKENDS:
   default: return PURRR_INVALID_ARGS_ERROR;
   }

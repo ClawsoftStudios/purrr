@@ -57,7 +57,7 @@ Purrr_Result _purrr_resize_renderer_vulkan_windows(struct _Purrr_Renderer_Vulkan
 Purrr_Result _purrr_create_renderer_vulkan(_Purrr_Context_Vulkan *context, Purrr_Renderer_Create_Info createInfo, _Purrr_Renderer_Vulkan **renderer) {
   (void)createInfo;
 
-  if (!renderer) return PURRR_INVALID_ARGS_ERROR;
+  if (!context || !renderer) return PURRR_INVALID_ARGS_ERROR;
 
   _Purrr_Renderer_Vulkan *rndrr = _purrr_malloc_with_header((_Purrr_Object_Header){
     .backend = PURRR_VULKAN,
@@ -219,6 +219,32 @@ Purrr_Result _purrr_renderer_begin_vulkan(_Purrr_Renderer_Vulkan *renderer, Purr
   }
 
   return PURRR_TRUE;
+}
+
+Purrr_Result _purrr_renderer_bind_buffer_vulkan(_Purrr_Renderer_Vulkan *renderer, _Purrr_Buffer_Vulkan *buffer, uint32_t index) {
+  if (!renderer || !buffer || renderer->context != buffer->context) return PURRR_INVALID_ARGS_ERROR;
+
+  switch (buffer->type) {
+  case PURRR_BUFFER_VERTEX: {
+    VkDeviceSize offset = 0;
+    vkCmdBindVertexBuffers(renderer->commandBuffer, index, 1, &buffer->buffer, &offset);
+  } break;
+  case PURRR_BUFFER_INDEX: {
+    vkCmdBindIndexBuffer(renderer->commandBuffer, buffer->buffer, 0, VK_INDEX_TYPE_UINT32);
+  } break;
+  case COUNT_PURRR_BUFFER_TYPES:
+  default: return PURRR_INVALID_ARGS_ERROR;
+  }
+
+  return PURRR_SUCCESS;
+}
+
+Purrr_Result _purrr_renderer_draw_indexed_vulkan(_Purrr_Renderer_Vulkan *renderer, uint32_t indexCount) {
+  if (!renderer || !indexCount) return PURRR_INVALID_ARGS_ERROR;
+
+  vkCmdDrawIndexed(renderer->commandBuffer, indexCount, 1, 0, 0, 0);
+
+  return PURRR_SUCCESS;
 }
 
 Purrr_Result _purrr_renderer_end_vulkan(_Purrr_Renderer_Vulkan *renderer) {

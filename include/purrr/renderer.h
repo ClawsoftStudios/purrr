@@ -25,6 +25,8 @@ Purrr_Result purrr_destroy_renderer(Purrr_Renderer renderer);
 Purrr_Result purrr_wait_renderer(Purrr_Renderer renderer);
 Purrr_Result purrr_begin_renderer(Purrr_Renderer renderer);
 Purrr_Result purrr_renderer_begin(Purrr_Renderer renderer, void *renderTarget, Purrr_Color color);
+Purrr_Result purrr_renderer_bind_buffer(Purrr_Renderer renderer, Purrr_Buffer buffer, uint32_t index);
+Purrr_Result purrr_renderer_draw_indexed(Purrr_Renderer renderer, uint32_t indexCount);
 Purrr_Result purrr_renderer_end(Purrr_Renderer renderer);
 Purrr_Result purrr_render_renderer(Purrr_Renderer renderer);
 

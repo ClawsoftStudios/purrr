@@ -1,6 +1,7 @@
 #ifndef   _PURRR_H_
 #define   _PURRR_H_
 
+#include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -12,6 +13,7 @@ typedef struct Purrr_Handle *Purrr_Handle;
 
 #include "result.h"
 #include "context.h"
+#include "buffer.h"
 #include "renderer.h"
 #include "window.h"
 

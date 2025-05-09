@@ -3,6 +3,7 @@
 
 #include "./vulkan.h"
 #include "./context.h"
+#include "./buffer.h"
 
 #include "../internal.h"
 
@@ -37,6 +38,8 @@ Purrr_Result _purrr_destroy_renderer_vulkan(_Purrr_Renderer_Vulkan *renderer);
 Purrr_Result _purrr_wait_renderer_vulkan(_Purrr_Renderer_Vulkan *renderer);
 Purrr_Result _purrr_begin_renderer_vulkan(_Purrr_Renderer_Vulkan *renderer);
 Purrr_Result _purrr_renderer_begin_vulkan(_Purrr_Renderer_Vulkan *renderer, Purrr_Handle renderTarget, Purrr_Color color);
+Purrr_Result _purrr_renderer_bind_buffer_vulkan(_Purrr_Renderer_Vulkan *renderer, _Purrr_Buffer_Vulkan *buffer, uint32_t index);
+Purrr_Result _purrr_renderer_draw_indexed_vulkan(_Purrr_Renderer_Vulkan *renderer, uint32_t indexCount);
 Purrr_Result _purrr_renderer_end_vulkan(_Purrr_Renderer_Vulkan *renderer);
 Purrr_Result _purrr_render_renderer_vulkan(_Purrr_Renderer_Vulkan *renderer);
 
