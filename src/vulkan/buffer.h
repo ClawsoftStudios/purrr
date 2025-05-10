@@ -13,6 +13,8 @@ typedef struct _Purrr_Buffer_Vulkan {
   uint32_t size;
   VkBuffer buffer;
   VkDeviceMemory memory;
+
+  VkDescriptorSet descriptorSet;
 } _Purrr_Buffer_Vulkan;
 
 Purrr_Result _purrr_create_buffer_vulkan(_Purrr_Context_Vulkan *context, Purrr_Buffer_Create_Info createInfo, _Purrr_Buffer_Vulkan **buffer);

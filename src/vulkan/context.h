@@ -16,6 +16,7 @@ typedef struct _Purrr_Context_Vulkan {
 
   VkDescriptorPool descriptorPool;
   VkDescriptorSetLayout textureLayout;
+  VkDescriptorSetLayout uniformBufferLayout;
 } _Purrr_Context_Vulkan;
 
 Purrr_Result _purrr_create_context_vulkan(Purrr_Context_Create_Info createInfo, _Purrr_Context_Vulkan **context);

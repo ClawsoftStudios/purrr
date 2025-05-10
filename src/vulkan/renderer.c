@@ -252,6 +252,10 @@ Purrr_Result _purrr_renderer_bind_buffer_vulkan(_Purrr_Renderer_Vulkan *renderer
   case PURRR_BUFFER_INDEX: {
     vkCmdBindIndexBuffer(renderer->commandBuffer, buffer->buffer, 0, VK_INDEX_TYPE_UINT32);
   } break;
+  case PURRR_BUFFER_UNIFORM: {
+    if (!renderer->program || !buffer->descriptorSet) return PURRR_INVALID_ARGS_ERROR;
+    vkCmdBindDescriptorSets(renderer->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer->program->layout, index, 1, &buffer->descriptorSet, 0, VK_NULL_HANDLE);
+  } break;
   case COUNT_PURRR_BUFFER_TYPES:
   default: return PURRR_INVALID_ARGS_ERROR;
   }

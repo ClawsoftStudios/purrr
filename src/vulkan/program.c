@@ -175,6 +175,9 @@ Purrr_Result _purrr_create_program_vulkan(Purrr_Handle renderTarget, Purrr_Progr
     case PURRR_PROGRAM_BINDING_IMAGE: {
       layouts[i] = prog->context->textureLayout;
     } break;
+    case PURRR_PROGRAM_BINDING_UNIFORM_BUFFER: {
+      layouts[i] = prog->context->uniformBufferLayout;
+    } break;
     case COUNT_PURRR_PROGRAM_BINDING_TYPES:
     default: {
       free(bindings);

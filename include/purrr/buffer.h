@@ -6,6 +6,7 @@ typedef struct Purrr_Buffer *Purrr_Buffer;
 typedef enum Purrr_Buffer_Type {
   PURRR_BUFFER_VERTEX = 0,
   PURRR_BUFFER_INDEX,
+  PURRR_BUFFER_UNIFORM,
 
   COUNT_PURRR_BUFFER_TYPES // Must be less or equal to 8
 } Purrr_Buffer_Type;

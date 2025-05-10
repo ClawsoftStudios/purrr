@@ -45,6 +45,10 @@ static Index sIndices[] = {
   2, 0, 3
 };
 
+typedef struct UBO {
+  float n;
+} UBO;
+
 static Purrr_Result load_image(const char *filepath, Purrr_Context context, Purrr_Sampler sampler, Purrr_Image *image, uint32_t *width, uint32_t *height);
 
 int main(void) {
@@ -93,6 +97,12 @@ int main(void) {
 
   Purrr_Image image = PURRR_NULL_HANDLE;
   CHECK(load_image("./chp.png", context, sampler, &image, &width, &height));
+
+  Purrr_Buffer ubo = PURRR_NULL_HANDLE;
+  CHECK(purrr_create_buffer(context, (Purrr_Buffer_Create_Info){
+    .type = PURRR_BUFFER_UNIFORM,
+    .size = sizeof(UBO)
+  }, &ubo));
 
   Purrr_Renderer renderer = { 0 };
   CHECK(purrr_create_renderer(context, (Purrr_Renderer_Create_Info) {
@@ -144,13 +154,15 @@ int main(void) {
             }
           }
         },
-        .bindingCount = 1,
+        .bindingCount = 2,
         .bindings = (Purrr_Program_Binding_Type[]){
-          PURRR_PROGRAM_BINDING_IMAGE
+          PURRR_PROGRAM_BINDING_IMAGE, PURRR_PROGRAM_BINDING_UNIFORM_BUFFER
         }
       }, &programs[i]));
     }
   }
+
+  float n = 0.0f;
 
   while (true) {
     purrr_poll_windows();
@@ -185,6 +197,10 @@ int main(void) {
 
     if (close) break;
 
+    n += 0.0001f;
+    if (n > 1.0f) n = 0.0f;
+    CHECK(purrr_copy_buffer_data(ubo, &n, sizeof(float), 0));
+
     CHECK(purrr_renderer_bind_buffer(renderer, vertexBuffer, 0));
     CHECK(purrr_renderer_bind_buffer(renderer, indexBuffer, 0));
 
@@ -197,6 +213,7 @@ int main(void) {
         CHECK(purrr_renderer_bind_program(renderer, programs[i]));
 
         CHECK(purrr_renderer_bind_image(renderer, image, 0));
+        CHECK(purrr_renderer_bind_buffer(renderer, ubo, 1));
         CHECK(purrr_renderer_draw_indexed(renderer, sizeof(sIndices) / sizeof(*sIndices)));
 
         CHECK(purrr_renderer_end(renderer));
@@ -215,6 +232,7 @@ int main(void) {
 
   (void)purrr_destroy_renderer(renderer);
 
+  (void)purrr_destroy_buffer(ubo);
   (void)purrr_destroy_image(image);
   (void)purrr_destroy_sampler(sampler);
 

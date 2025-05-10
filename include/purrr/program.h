@@ -30,6 +30,7 @@ typedef struct Purrr_Program_Vertex_Binding_Info {
 
 typedef enum Purrr_Program_Binding_Type {
   PURRR_PROGRAM_BINDING_IMAGE = 0,
+  PURRR_PROGRAM_BINDING_UNIFORM_BUFFER,
 
   COUNT_PURRR_PROGRAM_BINDING_TYPES
 } Purrr_Program_Binding_Type;
