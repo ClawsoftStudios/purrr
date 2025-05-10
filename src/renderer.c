@@ -61,6 +61,16 @@ Purrr_Result purrr_renderer_bind_buffer(Purrr_Renderer renderer, Purrr_Buffer bu
   }
 }
 
+Purrr_Result purrr_renderer_bind_image(Purrr_Renderer renderer, Purrr_Image image, uint32_t index) {
+  if (_purrr_get_header(renderer).backend != _purrr_get_header(image).backend) return PURRR_INVALID_ARGS_ERROR;
+
+  switch (_purrr_get_header(renderer).backend) {
+  case PURRR_VULKAN: return _purrr_renderer_bind_image_vulkan((_Purrr_Renderer_Vulkan*)renderer, (_Purrr_Image_Vulkan*)image, index);
+  case COUNT_PURRR_BACKENDS:
+  default: return PURRR_INVALID_ARGS_ERROR;
+  }
+}
+
 Purrr_Result purrr_renderer_bind_program(Purrr_Renderer renderer, Purrr_Program program) {
   switch (_purrr_get_header(renderer).backend) {
   case PURRR_VULKAN: return _purrr_renderer_bind_program_vulkan((_Purrr_Renderer_Vulkan*)renderer, (_Purrr_Program_Vulkan*)program);

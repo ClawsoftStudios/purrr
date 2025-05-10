@@ -24,6 +24,11 @@ Purrr_Result _purrr_create_image_vulkan(_Purrr_Context_Vulkan *context, Purrr_Im
 
   img->context = context;
 
+  if (createInfo.type == PURRR_IMAGE_TEXTURE && !(img->sampler = (_Purrr_Sampler_Vulkan*)createInfo.sampler)) {
+    _purrr_destroy_image_vulkan(img);
+    return PURRR_INVALID_ARGS_ERROR;
+  }
+
   img->stageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 
   img->format = createInfo.format;
@@ -52,7 +57,10 @@ Purrr_Result _purrr_create_image_vulkan(_Purrr_Context_Vulkan *context, Purrr_Im
     .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
   };
 
-  if (vkCreateImage(context->device, &imageCreateInfo, VK_NULL_HANDLE, &img->image) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
+  if (vkCreateImage(context->device, &imageCreateInfo, VK_NULL_HANDLE, &img->image) != VK_SUCCESS) {
+    _purrr_destroy_image_vulkan(img);
+    return PURRR_INTERNAL_ERROR;
+  }
 
   VkMemoryRequirements memRequirements = {0};
   vkGetImageMemoryRequirements(context->device, img->image, &memRequirements);
@@ -67,17 +75,33 @@ Purrr_Result _purrr_create_image_vulkan(_Purrr_Context_Vulkan *context, Purrr_Im
     .memoryTypeIndex = _purrr_vulkan_find_memory_type(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, memProperties)
   };
 
-  if (vkAllocateMemory(context->device, &allocInfo, VK_NULL_HANDLE, &img->memory) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
+  if (vkAllocateMemory(context->device, &allocInfo, VK_NULL_HANDLE, &img->memory) != VK_SUCCESS) {
+    _purrr_destroy_image_vulkan(img);
+    return PURRR_INTERNAL_ERROR;
+  }
 
-  if (vkBindImageMemory(context->device, img->image, img->memory, 0) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
+  if (vkBindImageMemory(context->device, img->image, img->memory, 0) != VK_SUCCESS) {
+    _purrr_destroy_image_vulkan(img);
+    return PURRR_INTERNAL_ERROR;
+  }
 
   Purrr_Result result = PURRR_SUCCESS;
   if (createInfo.pixels) {
-    if ((result = _purrr_transition_image_layout_vulkan(img, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_ACCESS_TRANSFER_WRITE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT)) < PURRR_SUCCESS) return result;
-    if ((result = _purrr_copy_image_vulkan(img, (VkExtent2D){ createInfo.width, createInfo.height }, (VkOffset2D){ 0 }, createInfo.pixels)) < PURRR_SUCCESS) return result;
+    if ((result = _purrr_transition_image_layout_vulkan(img, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_ACCESS_TRANSFER_WRITE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT)) < PURRR_SUCCESS) {
+      _purrr_destroy_image_vulkan(img);
+      return result;
+    }
+
+    if ((result = _purrr_copy_image_vulkan(img, (VkExtent2D){ createInfo.width, createInfo.height }, (VkOffset2D){ 0 }, createInfo.pixels)) < PURRR_SUCCESS) {
+      _purrr_destroy_image_vulkan(img);
+      return result;
+    }
   }
 
-  if ((result = _purrr_transition_image_layout_vulkan(img, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_ACCESS_SHADER_READ_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT)) < PURRR_SUCCESS) return result;
+  if ((result = _purrr_transition_image_layout_vulkan(img, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_ACCESS_SHADER_READ_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT)) < PURRR_SUCCESS) {
+    _purrr_destroy_image_vulkan(img);
+    return result;
+  }
 
   VkImageViewCreateInfo viewCreateInfo = {
     .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
@@ -101,7 +125,46 @@ Purrr_Result _purrr_create_image_vulkan(_Purrr_Context_Vulkan *context, Purrr_Im
     }
   };
 
-  if (vkCreateImageView(context->device, &viewCreateInfo, VK_NULL_HANDLE, &img->view) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
+  if (vkCreateImageView(context->device, &viewCreateInfo, VK_NULL_HANDLE, &img->view) != VK_SUCCESS) {
+    _purrr_destroy_image_vulkan(img);
+    return PURRR_INTERNAL_ERROR;
+  }
+
+  if (createInfo.type == PURRR_IMAGE_TEXTURE) {
+    VkDescriptorSetAllocateInfo allocInfo = {
+      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+      .pNext = VK_NULL_HANDLE,
+      .descriptorPool = context->descriptorPool,
+      .descriptorSetCount = 1,
+      .pSetLayouts = &context->textureLayout
+    };
+
+    if (vkAllocateDescriptorSets(context->device, &allocInfo, &img->descriptorSet) != VK_SUCCESS) {
+      _purrr_destroy_image_vulkan(img);
+      return PURRR_INTERNAL_ERROR;
+    }
+
+    VkDescriptorImageInfo imageInfo = {
+      .imageLayout = img->layout,
+      .imageView = img->view,
+      .sampler = img->sampler->sampler
+    };
+
+    VkWriteDescriptorSet write = {
+      .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+      .pNext = VK_NULL_HANDLE,
+      .dstSet = img->descriptorSet,
+      .dstBinding = 0,
+      .dstArrayElement = 0,
+      .descriptorCount = 1,
+      .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+      .pImageInfo = &imageInfo,
+      .pBufferInfo = VK_NULL_HANDLE,
+      .pTexelBufferView = VK_NULL_HANDLE
+    };
+
+    vkUpdateDescriptorSets(context->device, 1, &write, 0, VK_NULL_HANDLE);
+  }
 
   *image = img;
 
@@ -114,6 +177,9 @@ Purrr_Result _purrr_destroy_image_vulkan(_Purrr_Image_Vulkan *image) {
   if (image->image) vkDestroyImage(image->context->device, image->image, VK_NULL_HANDLE);
   if (image->memory) vkFreeMemory(image->context->device, image->memory, VK_NULL_HANDLE);
   if (image->view) vkDestroyImageView(image->context->device, image->view, VK_NULL_HANDLE);
+  if (image->descriptorSet) vkFreeDescriptorSets(image->context->device, image->context->descriptorPool, 1, &image->descriptorSet);
+
+  _purrr_free_with_header(image);
 
   return PURRR_SUCCESS;
 }

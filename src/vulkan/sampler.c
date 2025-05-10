@@ -38,7 +38,10 @@ Purrr_Result _purrr_create_sampler_vulkan(_Purrr_Context_Vulkan *context, Purrr_
     .unnormalizedCoordinates = VK_FALSE
   };
 
-  if (vkCreateSampler(context->device, &samplerCreateInfo, VK_NULL_HANDLE, &smplr->sampler) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
+  if (vkCreateSampler(context->device, &samplerCreateInfo, VK_NULL_HANDLE, &smplr->sampler) != VK_SUCCESS) {
+    _purrr_destroy_sampler_vulkan(smplr);
+    return PURRR_INTERNAL_ERROR;
+  }
 
   *sampler = smplr;
 
@@ -49,6 +52,8 @@ Purrr_Result _purrr_destroy_sampler_vulkan(_Purrr_Sampler_Vulkan *sampler) {
   if (!sampler) return PURRR_INVALID_ARGS_ERROR;
 
   if (sampler->sampler) vkDestroySampler(sampler->context->device, sampler->sampler, VK_NULL_HANDLE);
+
+  _purrr_free_with_header(sampler);
 
   return PURRR_SUCCESS;
 }

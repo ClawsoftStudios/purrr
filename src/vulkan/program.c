@@ -162,12 +162,36 @@ Purrr_Result _purrr_create_program_vulkan(Purrr_Handle renderTarget, Purrr_Progr
     }
   };
 
+  VkDescriptorSetLayout *layouts = malloc(sizeof(*layouts) * createInfo.bindingCount);
+  if (!layouts) {
+    free(bindings);
+    free(attributes);
+    _purrr_destroy_program_vulkan(prog);
+    return PURRR_INTERNAL_ERROR;
+  }
+
+  for (uint32_t i = 0; i < createInfo.bindingCount; ++i) {
+    switch (createInfo.bindings[i]) {
+    case PURRR_PROGRAM_BINDING_IMAGE: {
+      layouts[i] = prog->context->textureLayout;
+    } break;
+    case COUNT_PURRR_PROGRAM_BINDING_TYPES:
+    default: {
+      free(bindings);
+      free(attributes);
+      free(layouts);
+      _purrr_destroy_program_vulkan(prog);
+      return PURRR_INVALID_ARGS_ERROR;
+    }
+    }
+  }
+
   VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
     .pNext = VK_NULL_HANDLE,
     .flags = 0,
-    .setLayoutCount = 0,
-    .pSetLayouts = VK_NULL_HANDLE,
+    .setLayoutCount = createInfo.bindingCount,
+    .pSetLayouts = layouts,
     .pushConstantRangeCount = 0,
     .pPushConstantRanges = VK_NULL_HANDLE
   };
@@ -175,9 +199,12 @@ Purrr_Result _purrr_create_program_vulkan(Purrr_Handle renderTarget, Purrr_Progr
   if (vkCreatePipelineLayout(prog->context->device, &pipelineLayoutCreateInfo, VK_NULL_HANDLE, &prog->layout) != VK_SUCCESS) {
     free(bindings);
     free(attributes);
+    free(layouts);
     _purrr_destroy_program_vulkan(prog);
     return PURRR_INTERNAL_ERROR;
   }
+
+  free(layouts);
 
   VkPipelineShaderStageCreateInfo *stages = malloc(sizeof(*stages) * createInfo.shaderCount);
   if (!stages) {

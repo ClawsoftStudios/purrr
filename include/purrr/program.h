@@ -28,11 +28,19 @@ typedef struct Purrr_Program_Vertex_Binding_Info {
   const Purrr_Program_Vertex_Attribute_Info *attributes;
 } Purrr_Program_Vertex_Binding_Info;
 
+typedef enum Purrr_Program_Binding_Type {
+  PURRR_PROGRAM_BINDING_IMAGE = 0,
+
+  COUNT_PURRR_PROGRAM_BINDING_TYPES
+} Purrr_Program_Binding_Type;
+
 typedef struct Purrr_Program_Create_Info {
   uint32_t shaderCount;
   const Purrr_Program_Shader_Info *shaders;
   uint32_t vertexBindingCount;
   const Purrr_Program_Vertex_Binding_Info *vertexBindings;
+  uint32_t bindingCount;
+  const Purrr_Program_Binding_Type *bindings;
 } Purrr_Program_Create_Info;
 
 Purrr_Result purrr_create_program(Purrr_Handle renderTarget, Purrr_Program_Create_Info createInfo, Purrr_Program *program);

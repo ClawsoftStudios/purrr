@@ -77,6 +77,46 @@ Purrr_Result _purrr_create_context_vulkan(Purrr_Context_Create_Info createInfo, 
 
   if (vkCreateCommandPool(ctx->device, &commandPoolCreateInfo, VK_NULL_HANDLE, &ctx->commandPool) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
 
+  VkDescriptorPoolSize poolSizes[] = {
+    (VkDescriptorPoolSize){
+      .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+      .descriptorCount = 1024
+    }
+  };
+
+  VkDescriptorPoolCreateInfo descriptorPoolCreateInfo = {
+    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+    .pNext = VK_NULL_HANDLE,
+    .flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,
+    .maxSets = 1024,
+    .poolSizeCount = sizeof(poolSizes)/sizeof(*poolSizes),
+    .pPoolSizes = poolSizes,
+  };
+
+  if (vkCreateDescriptorPool(ctx->device, &descriptorPoolCreateInfo, VK_NULL_HANDLE, &ctx->descriptorPool) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
+
+  {
+    VkDescriptorSetLayoutBinding bindings[] = {
+      (VkDescriptorSetLayoutBinding){
+        .binding = 0,
+        .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+        .descriptorCount = 1,
+        .stageFlags = VK_SHADER_STAGE_ALL,
+        .pImmutableSamplers = VK_NULL_HANDLE
+      }
+    };
+
+    VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = {
+      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+      .pNext = VK_NULL_HANDLE,
+      .flags = 0,
+      .bindingCount = sizeof(bindings)/sizeof(*bindings),
+      .pBindings = bindings
+    };
+
+    if (vkCreateDescriptorSetLayout(ctx->device, &descriptorSetLayoutCreateInfo, VK_NULL_HANDLE, &ctx->textureLayout) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
+  }
+
   *context = ctx;
 
   return PURRR_SUCCESS;
@@ -84,6 +124,9 @@ Purrr_Result _purrr_create_context_vulkan(Purrr_Context_Create_Info createInfo, 
 
 Purrr_Result _purrr_destroy_context_vulkan(_Purrr_Context_Vulkan *context) {
   if (!context) return PURRR_INVALID_ARGS_ERROR;
+
+  if (context->descriptorPool) vkDestroyDescriptorPool(context->device, context->descriptorPool, VK_NULL_HANDLE);
+  if (context->textureLayout) vkDestroyDescriptorSetLayout(context->device, context->textureLayout, VK_NULL_HANDLE);
 
   if (context->commandPool) vkDestroyCommandPool(context->device, context->commandPool, VK_NULL_HANDLE);
   if (context->device) vkDestroyDevice(context->device, VK_NULL_HANDLE);

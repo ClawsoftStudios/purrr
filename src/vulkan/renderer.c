@@ -259,10 +259,18 @@ Purrr_Result _purrr_renderer_bind_buffer_vulkan(_Purrr_Renderer_Vulkan *renderer
   return PURRR_SUCCESS;
 }
 
+Purrr_Result _purrr_renderer_bind_image_vulkan(_Purrr_Renderer_Vulkan *renderer, _Purrr_Image_Vulkan *image, uint32_t index) {
+  if (!renderer || !renderer->program || !image || renderer->context != image->context || !image->descriptorSet) return PURRR_INVALID_ARGS_ERROR;
+
+  vkCmdBindDescriptorSets(renderer->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer->program->layout, index, 1, &image->descriptorSet, 0, VK_NULL_HANDLE);
+
+  return PURRR_SUCCESS;
+}
+
 Purrr_Result _purrr_renderer_bind_program_vulkan(_Purrr_Renderer_Vulkan *renderer, _Purrr_Program_Vulkan *program) {
   if (!renderer || !program) return PURRR_INVALID_ARGS_ERROR;
 
-  vkCmdBindPipeline(renderer->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, program->pipeline);
+  vkCmdBindPipeline(renderer->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, (renderer->program = program)->pipeline);
 
   return PURRR_SUCCESS;
 }
@@ -279,6 +287,8 @@ Purrr_Result _purrr_renderer_end_vulkan(_Purrr_Renderer_Vulkan *renderer) {
   if (!renderer) return PURRR_INVALID_ARGS_ERROR;
 
   vkCmdEndRenderPass(renderer->commandBuffer);
+
+  renderer->program = PURRR_NULL_HANDLE;
 
   return PURRR_SUCCESS;
 }

@@ -22,19 +22,19 @@ typedef struct Vertex {
 static Vertex sVertices[] = {
   (Vertex){
     .x = -1.0f, .y = -1.0f,
-    .u =  1.0f, .v =  0.0f,
-  },
-  (Vertex){
-    .x =  1.0f, .y = -1.0f,
     .u =  0.0f, .v =  0.0f,
   },
   (Vertex){
+    .x =  1.0f, .y = -1.0f,
+    .u =  1.0f, .v =  0.0f,
+  },
+  (Vertex){
     .x =  1.0f, .y =  1.0f,
-    .u =  0.0f, .v =  1.0f,
+    .u =  1.0f, .v =  1.0f,
   },
   (Vertex){
     .x = -1.0f, .y =  1.0f,
-    .u =  1.0f, .v =  1.0f,
+    .u =  0.0f, .v =  1.0f,
   }
 };
 
@@ -45,7 +45,7 @@ static Index sIndices[] = {
   2, 0, 3
 };
 
-static Purrr_Result load_image(const char *filepath, Purrr_Context context, Purrr_Image *image);
+static Purrr_Result load_image(const char *filepath, Purrr_Context context, Purrr_Sampler sampler, Purrr_Image *image, uint32_t *width, uint32_t *height);
 
 int main(void) {
   Purrr_Result result = PURRR_SUCCESS;
@@ -89,8 +89,10 @@ int main(void) {
     .borderColor = PURRR_SAMPLER_BORDER_FLOAT_TRANSPARENT_BLACK
   }, &sampler));
 
+  uint32_t width = 0, height = 0;
+
   Purrr_Image image = PURRR_NULL_HANDLE;
-  CHECK(load_image("./chp.png", context, &image));
+  CHECK(load_image("./chp.png", context, sampler, &image, &width, &height));
 
   Purrr_Renderer renderer = { 0 };
   CHECK(purrr_create_renderer(context, (Purrr_Renderer_Create_Info) {
@@ -108,8 +110,8 @@ int main(void) {
 
       CHECK(purrr_create_window(renderer, (Purrr_Window_Create_Info){
         .title = windowTitle,
-        .width = 1920/WINDOW_COUNT,
-        .height = 1080/WINDOW_COUNT,
+        .width = width,
+        .height = height,
         .depth = false
       }, &windows[i]));
 
@@ -141,6 +143,10 @@ int main(void) {
               }
             }
           }
+        },
+        .bindingCount = 1,
+        .bindings = (Purrr_Program_Binding_Type[]){
+          PURRR_PROGRAM_BINDING_IMAGE
         }
       }, &programs[i]));
     }
@@ -190,6 +196,7 @@ int main(void) {
       if (result) {
         CHECK(purrr_renderer_bind_program(renderer, programs[i]));
 
+        CHECK(purrr_renderer_bind_image(renderer, image, 0));
         CHECK(purrr_renderer_draw_indexed(renderer, sizeof(sIndices) / sizeof(*sIndices)));
 
         CHECK(purrr_renderer_end(renderer));
@@ -219,22 +226,20 @@ int main(void) {
   return 0;
 }
 
-static Purrr_Result load_image(const char *filepath, Purrr_Context context, Purrr_Image *image) {
+static Purrr_Result load_image(const char *filepath, Purrr_Context context, Purrr_Sampler sampler, Purrr_Image *image, uint32_t *width, uint32_t *height) {
   if (!filepath || !context || !image) return PURRR_INVALID_ARGS_ERROR;
 
-  int width, height;
-  stbi_uc *pixels = stbi_load(filepath, &width, &height, NULL, STBI_rgb_alpha);
+  stbi_uc *pixels = stbi_load(filepath, width, height, NULL, STBI_rgb_alpha);
   if (!pixels) return PURRR_FILE_SYSTEM_ERROR;
-
-  printf("%s: width: %d, height: %d\n", filepath, width, height);
 
   Purrr_Result result = PURRR_SUCCESS;
   if ((result = purrr_create_image(context, (Purrr_Image_Create_Info){
     .type = PURRR_IMAGE_TEXTURE,
-    .format = PURRR_R8G8B8A8_SRGB,
-    .width = width,
-    .height = height,
-    .pixels = pixels
+    .format = PURRR_R8G8B8A8_UNORM,
+    .width = *width,
+    .height = *height,
+    .pixels = pixels,
+    .sampler = sampler
   }, image)) < PURRR_SUCCESS) return result;
 
   stbi_image_free(pixels);

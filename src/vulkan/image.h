@@ -19,6 +19,8 @@ typedef struct _Purrr_Image_Vulkan {
   VkDeviceMemory memory;
   VkImageView view;
 
+  VkDescriptorSet descriptorSet;
+
   VkImageLayout layout;
   VkAccessFlags accessMask;
   VkPipelineStageFlags stageMask;
