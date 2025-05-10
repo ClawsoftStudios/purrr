@@ -96,7 +96,7 @@ int main(void) {
   uint32_t width = 0, height = 0;
 
   Purrr_Image image = PURRR_NULL_HANDLE;
-  CHECK(load_image("./chp.png", context, sampler, &image, &width, &height));
+  CHECK(load_image("./assets/chp.png", context, sampler, &image, &width, &height));
 
   Purrr_Buffer ubo = PURRR_NULL_HANDLE;
   CHECK(purrr_create_buffer(context, (Purrr_Buffer_Create_Info){
@@ -130,11 +130,11 @@ int main(void) {
         .shaders = (Purrr_Program_Shader_Info[]){
           (Purrr_Program_Shader_Info){
             .type = PURRR_PROGRAM_SHADER_VERTEX,
-            .filepath = "./vertexShader.spv"
+            .filepath = "./assets/vertexShader.spv"
           },
           (Purrr_Program_Shader_Info){
             .type = PURRR_PROGRAM_SHADER_FRAGMENT,
-            .filepath = "./fragmentShader.spv"
+            .filepath = "./assets/fragmentShader.spv"
           }
         },
         .vertexBindingCount = 1,
