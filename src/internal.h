@@ -44,9 +44,16 @@ struct Purrr_Window {
 
   uint8_t keys[(PURRR_KEY_LAST+7)/8];
 
+  void *userPointer;
+
+  Purrr_Window_Key_Callback keyCallback;
+
   void *platformData;
   void *backendData;
 };
+
+void _purrr_set_window_key(Purrr_Window window, int16_t scancode, Purrr_Key key, bool down, Purrr_Key_Modifiers modifiers);
+bool _purrr_get_window_key(Purrr_Window window, Purrr_Key key);
 
 
 

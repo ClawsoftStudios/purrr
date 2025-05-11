@@ -54,6 +54,10 @@ static LRESULT window_procedure(HWND handle, UINT msg, WPARAM wParam, LPARAM lPa
   case WM_KEYDOWN:
   case WM_KEYUP: {
     WORD scancode = (HIWORD(lParam) & 0x1FF);
+    if (!scancode) scancode = MapVirtualKeyW((UINT)wParam, MAPVK_VK_TO_VSC);
+    if (scancode == 0x54) scancode = 0x137;
+    if (scancode == 0x146) scancode = 0x45;
+    if (scancode == 0x136) scancode = 0x36;
 
     Purrr_Key key = window->keycodes[scancode];
     if (wParam == VK_CONTROL) { // Taken from https://github.com/glfw/glfw/blob/master/src/win32_window.c#L739
@@ -78,11 +82,14 @@ static LRESULT window_procedure(HWND handle, UINT msg, WPARAM wParam, LPARAM lPa
       }
     } else if (wParam == VK_PROCESSKEY) return DefWindowProc(handle, msg, wParam, lParam);
 
+    Purrr_Key_Modifiers modifiers = 0; // TODO:
+
     bool up = (HIWORD(lParam) & KF_UP);
     if (up && wParam == VK_SHIFT) {
-      _PURRR_WINDOW_SET_KEY(realWindow->keys, PURRR_KEY_LEFT_SHIFT, true);
-      _PURRR_WINDOW_SET_KEY(realWindow->keys, PURRR_KEY_RIGHT_SHIFT, true);
-    } else if (wParam != VK_SNAPSHOT) _PURRR_WINDOW_SET_KEY(realWindow->keys, key, !up);
+      _purrr_set_window_key(realWindow, scancode, PURRR_KEY_LEFT_SHIFT, false, modifiers);
+      _purrr_set_window_key(realWindow, scancode, PURRR_KEY_RIGHT_SHIFT, false, modifiers);
+    } else if (wParam != VK_SNAPSHOT) _purrr_set_window_key(realWindow, scancode, key, !up, modifiers);
+
     else return DefWindowProc(handle, msg, wParam, lParam);
   } break;
   default: return DefWindowProc(handle, msg, wParam, lParam);
@@ -335,6 +342,18 @@ static void create_key_tables(_Purrr_Window_Win32 *window) {
     if (window->keycodes[scancode] != (Purrr_Key)-1)
       window->scancodes[window->keycodes[scancode]] = scancode;
   }
+}
+
+void purrr_set_window_key_callback(Purrr_Window window, Purrr_Window_Key_Callback callback) {
+  if (window) window->keyCallback = callback;
+}
+
+void purrr_set_window_user_pointer(Purrr_Window window, void *userPointer) {
+  if (window) window->userPointer = userPointer;
+}
+
+void *purrr_get_window_user_pointer(Purrr_Window window) {
+  return (window?window->userPointer:NULL);
 }
 
 #endif // PURRR_PLATFORM_WINDOWS

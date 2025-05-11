@@ -107,10 +107,32 @@ Purrr_Result purrr_get_window_size(Purrr_Window window, int *width, int *height)
 
 Purrr_Result purrr_is_window_key_down(Purrr_Window window, Purrr_Key key) {
   if (!window || key >= PURRR_KEY_LAST) return PURRR_INVALID_ARGS_ERROR;
-  return _PURRR_WINDOW_GET_KEY(window->keys, key)?PURRR_TRUE:PURRR_SUCCESS;
+  return _purrr_get_window_key(window, key);
 }
 
 Purrr_Result purrr_is_window_key_up(Purrr_Window window, Purrr_Key key) {
   if (!window || key >= PURRR_KEY_LAST) return PURRR_INVALID_ARGS_ERROR;
-  return _PURRR_WINDOW_GET_KEY(window->keys, key)?PURRR_SUCCESS:PURRR_TRUE;
+  return !_purrr_get_window_key(window, key);
+}
+
+
+
+void _purrr_set_window_key(Purrr_Window window, int16_t scancode, Purrr_Key key, bool down, Purrr_Key_Modifiers modifiers) {
+  if (!window) return;
+
+  Purrr_Key_Action action = (Purrr_Key_Action)down;
+  if (key >= 0 && key < PURRR_KEY_LAST) {
+    if (action == PURRR_KEY_ACTION_RELEASE && !_purrr_get_window_key(window, key)) return;
+    if (action == PURRR_KEY_ACTION_PRESS && _purrr_get_window_key(window, key)) action = PURRR_KEY_ACTION_REPEAT;
+
+    if (action == PURRR_KEY_ACTION_RELEASE) window->keys[key/8] &= ~(1<<(key%8));
+    else window->keys[key/8] |= 1<<(key%8);
+  }
+
+  if (window->keyCallback) window->keyCallback(window, scancode, key, action, modifiers);
+}
+
+bool _purrr_get_window_key(Purrr_Window window, Purrr_Key key) {
+  if (!window) return false;
+  return (window->keys[key/8] & 1<<(key%8))?true:false;
 }

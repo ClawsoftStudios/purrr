@@ -51,6 +51,10 @@ typedef struct UBO {
 
 static Purrr_Result load_image(const char *filepath, Purrr_Context context, Purrr_Sampler sampler, Purrr_Image *image, uint32_t *width, uint32_t *height);
 
+void on_key(Purrr_Window window, int16_t scancode, Purrr_Key key, Purrr_Key_Action action, Purrr_Key_Modifiers modifiers) {
+  printf("Key: %d, action: %d\n", key, action);
+}
+
 int main(void) {
   Purrr_Result result = PURRR_SUCCESS;
 
@@ -119,6 +123,8 @@ int main(void) {
         .height = height,
         .depth = false
       }, &windows[i]));
+
+      purrr_set_window_key_callback(windows[i], on_key);
 
       CHECK(purrr_create_program((Purrr_Handle)windows[i], (Purrr_Program_Create_Info){
         .shaderCount = 2,
