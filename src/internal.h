@@ -42,6 +42,8 @@ struct Purrr_Window {
   bool shouldClose;
   int width, height;
 
+  uint8_t keys[(PURRR_KEY_LAST+7)/8];
+
   void *platformData;
   void *backendData;
 };

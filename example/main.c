@@ -98,12 +98,6 @@ int main(void) {
   Purrr_Image image = PURRR_NULL_HANDLE;
   CHECK(load_image("./assets/chp.png", context, sampler, &image, &width, &height));
 
-  Purrr_Buffer ubo = PURRR_NULL_HANDLE;
-  CHECK(purrr_create_buffer(context, (Purrr_Buffer_Create_Info){
-    .type = PURRR_BUFFER_UNIFORM,
-    .size = sizeof(UBO)
-  }, &ubo));
-
   Purrr_Renderer renderer = { 0 };
   CHECK(purrr_create_renderer(context, (Purrr_Renderer_Create_Info) {
     0
@@ -111,6 +105,7 @@ int main(void) {
 
   Purrr_Window windows[WINDOW_COUNT] = { PURRR_NULL_HANDLE };
   Purrr_Program programs[WINDOW_COUNT] = { PURRR_NULL_HANDLE };
+  Purrr_Buffer ubos[WINDOW_COUNT] = { PURRR_NULL_HANDLE };
 
   {
     char windowTitle[9] = {0};
@@ -159,10 +154,15 @@ int main(void) {
           PURRR_PROGRAM_BINDING_IMAGE, PURRR_PROGRAM_BINDING_UNIFORM_BUFFER
         }
       }, &programs[i]));
+
+      CHECK(purrr_create_buffer(context, (Purrr_Buffer_Create_Info){
+        .type = PURRR_BUFFER_UNIFORM,
+        .size = sizeof(UBO)
+      }, &ubos[i]));
     }
   }
 
-  float n = 0.0f;
+  float ns[WINDOW_COUNT] = { 0.0f };
 
   while (true) {
     purrr_poll_windows();
@@ -176,6 +176,12 @@ int main(void) {
 
       for (uint32_t i = 0; i < WINDOW_COUNT; ++i) {
         if (!windows[i]) continue;
+
+        if (purrr_is_window_key_down(windows[i], PURRR_KEY_ESCAPE) == PURRR_TRUE) {
+          (void)purrr_destroy_window(windows[i]);
+          windows[i] = NULL;
+          continue;
+        }
 
         // purrr_should_window_close returns PURRR_INVALID_ARGS_ERROR (-2)
         // if the window passed to it is invalid, otherwise it returns
@@ -197,9 +203,18 @@ int main(void) {
 
     if (close) break;
 
-    n += 0.0001f;
-    if (n > 1.0f) n = 0.0f;
-    CHECK(purrr_copy_buffer_data(ubo, &n, sizeof(float), 0));
+    for (uint32_t i = 0; i < WINDOW_COUNT; ++i) {
+      Purrr_Result left = purrr_is_window_key_down(windows[i], PURRR_KEY_LEFT);
+      Purrr_Result right = purrr_is_window_key_down(windows[i], PURRR_KEY_RIGHT);
+
+      if (left == PURRR_TRUE) ns[i] -= 0.0001f;
+      if (right == PURRR_TRUE) ns[i] += 0.0001f;
+
+      if (ns[i] >= 1.0f) ns[i] = 0.0f;
+      else if (ns[i] < 0.0f) ns[i] = 1.0f;
+
+      CHECK(purrr_copy_buffer_data(ubos[i], &ns[i], sizeof(float), 0));
+    }
 
     CHECK(purrr_renderer_bind_buffer(renderer, vertexBuffer, 0));
     CHECK(purrr_renderer_bind_buffer(renderer, indexBuffer, 0));
@@ -213,7 +228,7 @@ int main(void) {
         CHECK(purrr_renderer_bind_program(renderer, programs[i]));
 
         CHECK(purrr_renderer_bind_image(renderer, image, 0));
-        CHECK(purrr_renderer_bind_buffer(renderer, ubo, 1));
+        CHECK(purrr_renderer_bind_buffer(renderer, ubos[i], 1));
         CHECK(purrr_renderer_draw_indexed(renderer, sizeof(sIndices) / sizeof(*sIndices)));
 
         CHECK(purrr_renderer_end(renderer));
@@ -228,11 +243,11 @@ int main(void) {
   for (uint32_t i = 0; i < WINDOW_COUNT; ++i) {
     (void)purrr_destroy_window(windows[i]);
     (void)purrr_destroy_program(programs[i]);
+    (void)purrr_destroy_buffer(ubos[i]);
   }
 
   (void)purrr_destroy_renderer(renderer);
 
-  (void)purrr_destroy_buffer(ubo);
   (void)purrr_destroy_image(image);
   (void)purrr_destroy_sampler(sampler);
 

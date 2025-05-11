@@ -104,3 +104,13 @@ Purrr_Result purrr_get_window_size(Purrr_Window window, int *width, int *height)
 
   return PURRR_SUCCESS;
 }
+
+Purrr_Result purrr_is_window_key_down(Purrr_Window window, Purrr_Key key) {
+  if (!window || key >= PURRR_KEY_LAST) return PURRR_INVALID_ARGS_ERROR;
+  return _PURRR_WINDOW_GET_KEY(window->keys, key)?PURRR_TRUE:PURRR_SUCCESS;
+}
+
+Purrr_Result purrr_is_window_key_up(Purrr_Window window, Purrr_Key key) {
+  if (!window || key >= PURRR_KEY_LAST) return PURRR_INVALID_ARGS_ERROR;
+  return _PURRR_WINDOW_GET_KEY(window->keys, key)?PURRR_SUCCESS:PURRR_TRUE;
+}
