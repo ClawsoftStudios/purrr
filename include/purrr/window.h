@@ -3,7 +3,7 @@
 
 #define _PURRR_WINDOW_GET_KEY(keys, key) ((keys[key/8] & 1<<(key%8))?1:0)
 
-typedef struct Purrr_Window *Purrr_Window;
+typedef struct Purrr_Window_T *Purrr_Window;
 
 typedef struct Purrr_Window_Create_Info {
   const char *title;

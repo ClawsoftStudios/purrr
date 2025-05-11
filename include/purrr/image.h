@@ -1,7 +1,7 @@
 #ifndef   _PURRR_IMAGE_H_
 #define   _PURRR_IMAGE_H_
 
-typedef struct Purrr_Image *Purrr_Image;
+typedef struct Purrr_Image_T *Purrr_Image;
 
 typedef enum Purrr_Image_Type {
   PURRR_IMAGE_TEXTURE = 0,

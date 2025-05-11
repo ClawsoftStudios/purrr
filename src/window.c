@@ -10,7 +10,7 @@ Purrr_Result purrr_create_window(Purrr_Renderer renderer, Purrr_Window_Create_In
   if (!renderer || !window) return PURRR_INVALID_ARGS_ERROR;
 
   _Purrr_Object_Header header = _purrr_get_header(renderer);
-  struct Purrr_Window *win = _purrr_malloc_with_header((_Purrr_Object_Header){
+  struct Purrr_Window_T *win = _purrr_malloc_with_header((_Purrr_Object_Header){
     .backend = header.backend,
     .type = _PURRR_OBJECT_WINDOW,
     .flags = _PURRR_OBJECT_FLAG_RENDER_TARGET

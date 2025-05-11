@@ -1,7 +1,7 @@
 #ifndef   _PURRR_RENDERER_H_
 #define   _PURRR_RENDERER_H_
 
-typedef struct Purrr_Renderer *Purrr_Renderer;
+typedef struct Purrr_Renderer_T *Purrr_Renderer;
 
 typedef struct Purrr_Renderer_Create_Info {
   char x;

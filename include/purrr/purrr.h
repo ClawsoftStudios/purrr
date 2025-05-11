@@ -6,10 +6,10 @@
 #include <stdbool.h>
 
 #ifdef    __cplusplus
-#extern "C" {
+extern "C" {
 #endif // __cplusplus
 
-typedef struct Purrr_Handle *Purrr_Handle;
+typedef struct Purrr_Handle_T *Purrr_Handle;
 
 #include "result.h"
 #include "format.h"

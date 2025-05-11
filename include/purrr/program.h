@@ -1,7 +1,7 @@
 #ifndef   _PURRR_PROGRAM_H_
 #define   _PURRR_PROGRAM_H_
 
-typedef struct Purrr_Program *Purrr_Program;
+typedef struct Purrr_Program_T *Purrr_Program;
 
 typedef enum Purrr_Program_Shader_Type {
   PURRR_PROGRAM_SHADER_VERTEX = 0,

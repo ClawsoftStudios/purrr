@@ -1,7 +1,7 @@
 #ifndef   _PURRR_BUFFER_H_
 #define   _PURRR_BUFFER_H_
 
-typedef struct Purrr_Buffer *Purrr_Buffer;
+typedef struct Purrr_Buffer_T *Purrr_Buffer;
 
 typedef enum Purrr_Buffer_Type {
   PURRR_BUFFER_VERTEX = 0,

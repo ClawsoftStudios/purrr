@@ -36,7 +36,7 @@ void _purrr_free_with_header(void *ptr);
 
 
 
-struct Purrr_Window {
+struct Purrr_Window_T {
   Purrr_Context context;
 
   bool shouldClose;

@@ -1,7 +1,7 @@
 #ifndef   _PURRR_SAMPLER_H_
 #define   _PURRR_SAMPLER_H_
 
-typedef struct Purrr_Sampler *Purrr_Sampler;
+typedef struct Purrr_Sampler_T *Purrr_Sampler;
 
 typedef enum Purrr_Filter {
   PURRR_NEAREST = 0,

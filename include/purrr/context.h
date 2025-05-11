@@ -1,7 +1,7 @@
 #ifndef   _PURRR_CONTEXT_H_
 #define   _PURRR_CONTEXT_H_
 
-typedef struct Purrr_Context *Purrr_Context;
+typedef struct Purrr_Context_T *Purrr_Context;
 
 typedef enum Purrr_Backend {
   PURRR_VULKAN = 0,
