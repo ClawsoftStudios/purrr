@@ -1,6 +1,7 @@
 #ifndef   _PURRR_RESULT_H_
 #define   _PURRR_RESULT_H_
 
+// ALWAYS CHANGE purrr::Result after changing this enum
 typedef enum Purrr_Result {
   PURRR_FILE_SYSTEM_ERROR = -4,
   PURRR_INTERNAL_ERROR = -3,

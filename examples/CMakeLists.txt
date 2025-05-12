@@ -1,5 +1,5 @@
-add_executable(example main.c)
-target_link_libraries(example purrr)
+add_subdirectory(chp)
+add_subdirectory(chppp)
 
 add_custom_target(copy_assets ALL
   COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/assets" "${CMAKE_CURRENT_BINARY_DIR}/assets"
@@ -16,7 +16,7 @@ endif()
 set(SPIRV_OUTPUTS "")
 
 foreach(GLSL_FILE IN LISTS GLSL_SHADERS)
-  get_filename_component(FILE_NAME ${GLSL_FILE} NAME_WE)
+  get_filename_component(FILE_NAME ${GLSL_FILE} NAME)
   set(SPV_FILE "${CMAKE_CURRENT_BINARY_DIR}/assets/${FILE_NAME}.spv")
 
   add_custom_command(

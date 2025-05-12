@@ -4,7 +4,7 @@
 #include <string.h>
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "./stb_image.h"
+#include <stb_image.h>
 
 #define WINDOW_COUNT 1
 
@@ -60,8 +60,8 @@ int main(void) {
 
   Purrr_Context context = PURRR_NULL_HANDLE;
   CHECK(purrr_create_context(PURRR_VULKAN, (Purrr_Context_Create_Info) {
-    .applicationName = "purrr example",
-    .applicationVersion = PURRR_MAKE_VERSION(0, 1, 0),
+    .applicationName = "purrr chp example",
+    .applicationVersion = PURRR_MAKE_VERSION(1, 0, 0),
     .engineName = "purrr",
     .engineVersion = PURRR_VERSION
   }, & context));
@@ -131,11 +131,11 @@ int main(void) {
         .shaders = (Purrr_Program_Shader_Info[]){
           (Purrr_Program_Shader_Info){
             .type = PURRR_PROGRAM_SHADER_VERTEX,
-            .filepath = "./assets/vertexShader.spv"
+            .filepath = "./assets/chp.vert.spv"
           },
           (Purrr_Program_Shader_Info){
             .type = PURRR_PROGRAM_SHADER_FRAGMENT,
-            .filepath = "./assets/fragmentShader.spv"
+            .filepath = "./assets/chp.frag.spv"
           }
         },
         .vertexBindingCount = 1,
@@ -216,7 +216,7 @@ int main(void) {
       if (left == PURRR_TRUE) ns[i] -= 0.0001f;
       if (right == PURRR_TRUE) ns[i] += 0.0001f;
 
-      if (ns[i] >= 1.0f) ns[i] = 0.0f;
+      if (ns[i] > 1.0f) ns[i] = 0.0f;
       else if (ns[i] < 0.0f) ns[i] = 1.0f;
 
       CHECK(purrr_copy_buffer_data(ubos[i], &ns[i], sizeof(float), 0));

@@ -10,6 +10,7 @@ target_include_directories(purrr PUBLIC include/)
 target_link_libraries(purrr Vulkan::Vulkan)
 
 set_property(TARGET purrr PROPERTY C_STANDARD 99)
+set_property(TARGET purrr PROPERTY CXX_STANDARD 17)
 
 target_compile_definitions(purrr PRIVATE
   $<$<PLATFORM_ID:Windows>:PURRR_PLATFORM_WINDOWS>
@@ -21,7 +22,7 @@ target_compile_options(purrr PRIVATE
   $<$<AND:$<CONFIG:Debug>,$<C_COMPILER_ID:MSVC>>:/W4 /WX>
 )
 
-string(COMPARE EQUAL ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR} PURRR_INCLUDE_EXAMPLE)
-if(${PURRR_INCLUDE_EXAMPLE})
-  add_subdirectory(example/)
+string(COMPARE EQUAL ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR} PURRR_INCLUDE_EXAMPLES)
+if(${PURRR_INCLUDE_EXAMPLES})
+  add_subdirectory(examples/)
 endif()
