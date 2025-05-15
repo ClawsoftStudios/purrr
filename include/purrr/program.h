@@ -35,6 +35,19 @@ typedef enum Purrr_Program_Binding_Type {
   COUNT_PURRR_PROGRAM_BINDING_TYPES
 } Purrr_Program_Binding_Type;
 
+typedef enum Purrr_Program_Depth_Compare_Op {
+  PURRR_PROGRAM_DEPTH_COMPARE_NEVER = 0,
+  PURRR_PROGRAM_DEPTH_COMPARE_LESS,
+  PURRR_PROGRAM_DEPTH_COMPARE_EQUAL,
+  PURRR_PROGRAM_DEPTH_COMPARE_LESS_OR_EQUAL,
+  PURRR_PROGRAM_DEPTH_COMPARE_GREATER,
+  PURRR_PROGRAM_DEPTH_COMPARE_NOT_EQUAL,
+  PURRR_PROGRAM_DEPTH_COMPARE_GREATER_OR_EQUAL,
+  PURRR_PROGRAM_DEPTH_COMPARE_ALWAYS,
+
+  COUNT_PURRR_PROGRAM_DEPTH_COMPARE_OPS
+} Purrr_Program_Depth_Compare_Op;
+
 typedef struct Purrr_Program_Create_Info {
   uint32_t shaderCount;
   const Purrr_Program_Shader_Info *shaders;
@@ -42,6 +55,8 @@ typedef struct Purrr_Program_Create_Info {
   const Purrr_Program_Vertex_Binding_Info *vertexBindings;
   uint32_t bindingCount;
   const Purrr_Program_Binding_Type *bindings;
+  bool enableDepth;
+  Purrr_Program_Depth_Compare_Op compareOp;
 } Purrr_Program_Create_Info;
 
 Purrr_Result purrr_create_program(Purrr_Handle renderTarget, Purrr_Program_Create_Info createInfo, Purrr_Program *program);

@@ -34,6 +34,17 @@ public:
     UniformBuffer = PURRR_PROGRAM_BINDING_UNIFORM_BUFFER
   };
 
+  enum class DepthCompareOp {
+    Never = PURRR_PROGRAM_DEPTH_COMPARE_NEVER,
+    Less = PURRR_PROGRAM_DEPTH_COMPARE_LESS,
+    Equal = PURRR_PROGRAM_DEPTH_COMPARE_EQUAL,
+    LessOrEqual = PURRR_PROGRAM_DEPTH_COMPARE_LESS_OR_EQUAL,
+    Greater = PURRR_PROGRAM_DEPTH_COMPARE_GREATER,
+    NotEqual = PURRR_PROGRAM_DEPTH_COMPARE_NOT_EQUAL,
+    GreaterOrEqual = PURRR_PROGRAM_DEPTH_COMPARE_GREATER_OR_EQUAL,
+    Always = PURRR_PROGRAM_DEPTH_COMPARE_ALWAYS
+  };
+
   struct CreateInfo {
     uint32_t shaderCount;
     const ShaderInfo *shaders;
@@ -41,6 +52,8 @@ public:
     const VertexBindingInfo *vertexBindings;
     uint32_t bindingCount;
     const Binding *bindings;
+    bool enableDepth;
+    DepthCompareOp compareOp;
   };
 private:
   inline Program(Purrr_Handle renderTarget, const CreateInfo &createInfo)
@@ -88,7 +101,9 @@ private:
       createInfo.vertexBindingCount,
       vertexBindings,
       createInfo.bindingCount,
-      bindings
+      bindings,
+      createInfo.enableDepth,
+      (Purrr_Program_Depth_Compare_Op)createInfo.compareOp
     }, &mHandle);
 
     delete[] shaders;

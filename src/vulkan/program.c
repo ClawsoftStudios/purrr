@@ -127,6 +127,21 @@ Purrr_Result _purrr_create_program_vulkan(Purrr_Handle renderTarget, Purrr_Progr
     .alphaToOneEnable = VK_FALSE
   };
 
+  VkPipelineDepthStencilStateCreateInfo depthStencil = {
+    .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
+    .pNext = VK_NULL_HANDLE,
+    .flags = 0,
+    .depthTestEnable = createInfo.enableDepth,
+    .depthWriteEnable = createInfo.enableDepth,
+    .depthCompareOp = (VkCompareOp)createInfo.compareOp,
+    .depthBoundsTestEnable = VK_FALSE,
+    .stencilTestEnable = VK_FALSE,
+    .front = {0},
+    .back = {0},
+    .minDepthBounds = 0.0f,
+    .maxDepthBounds = 1.0f
+  };
+
   VkPipelineColorBlendAttachmentState colorBlendAttachment = {
     .blendEnable = VK_FALSE,
     .srcColorBlendFactor = VK_BLEND_FACTOR_ZERO,
@@ -278,7 +293,7 @@ Purrr_Result _purrr_create_program_vulkan(Purrr_Handle renderTarget, Purrr_Progr
     .pViewportState = &viewportState,
     .pRasterizationState = &rasterizer,
     .pMultisampleState = &multisampling,
-    .pDepthStencilState = VK_NULL_HANDLE,
+    .pDepthStencilState = &depthStencil,
     .pColorBlendState = &colorBlending,
     .pDynamicState = &dynamicState,
     .layout = prog->layout,

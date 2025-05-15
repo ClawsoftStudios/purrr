@@ -6,7 +6,7 @@ typedef struct Purrr_Image_T *Purrr_Image;
 typedef enum Purrr_Image_Type {
   PURRR_IMAGE_TEXTURE = 0,
   // PURRR_IMAGE_COLOR_ATTACHMENT,
-  // PURRR_IMAGE_DEPTH_ATTACHMENT,
+  PURRR_IMAGE_DEPTH_ATTACHMENT,
 
   COUNT_PURRR_IMAGE_TYPES
 } Purrr_Image_Type;

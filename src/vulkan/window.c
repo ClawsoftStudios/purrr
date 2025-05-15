@@ -1,5 +1,7 @@
 #include "./window.h"
 
+#include <stdio.h>
+
 #ifndef min
 #define min(a, b) ((a<b)?(a):(b))
 #endif // min
@@ -13,9 +15,9 @@
 #endif // clamp
 
 static Purrr_Result create_swapchain(VkPhysicalDevice gpu, VkDevice device, VkSurfaceKHR surface, uint32_t *width, uint32_t *height, VkFormat *format, VkSwapchainKHR *swapchain);
-static Purrr_Result create_image_views(VkDevice device, VkFormat format, uint32_t imageCount, VkImage *images, VkImageView *imageViews);
-static Purrr_Result create_render_pass(VkDevice device, VkFormat format, VkRenderPass *renderPass);
-static Purrr_Result create_framebuffers(VkDevice device, VkRenderPass renderPass, uint32_t width, uint32_t height, uint32_t imageCount, VkImageView *imageViews, VkFramebuffer *framebuffers);
+static Purrr_Result create_image_views(VkDevice device, VkFormat format, bool color, uint32_t imageCount, VkImage *images, VkImageView *imageViews);
+static Purrr_Result create_render_pass(VkDevice device, VkFormat format, VkFormat depthFormat, bool depth, VkRenderPass *renderPass);
+static Purrr_Result create_framebuffers(VkDevice device, VkRenderPass renderPass, uint32_t width, uint32_t height, bool depth, uint32_t imageCount, _Purrr_Image_Vulkan **depthImages, VkImageView *imageViews, VkFramebuffer *framebuffers);
 
 static Purrr_Result create_full_swapchain(_Purrr_Window_Vulkan *window, Purrr_Window realWindow);
 static void destroy_swapchain(_Purrr_Window_Vulkan *window);
@@ -29,11 +31,11 @@ Purrr_Result _purrr_create_window_vulkan(_Purrr_Renderer_Vulkan *renderer, Purrr
   _Purrr_Context_Vulkan *context = renderer->context;
   if ((result = _purrr_create_window_surface(context, platform, window)) < PURRR_SUCCESS) return result;
 
+  window->depth = createInfo.depth;
+
   if ((result = create_full_swapchain(window, realWindow)) < PURRR_SUCCESS) return result;
 
   if ((result = _purrr_add_renderer_window(renderer, realWindow, window, &window->index)) < PURRR_SUCCESS) return result;
-
-  window->depth = createInfo.depth;
 
   return PURRR_SUCCESS;
 }
@@ -170,8 +172,8 @@ static Purrr_Result create_swapchain(VkPhysicalDevice gpu, VkDevice device, VkSu
   return (vkCreateSwapchainKHR(device, &createInfo, VK_NULL_HANDLE, swapchain) == VK_SUCCESS)?PURRR_SUCCESS:PURRR_INTERNAL_ERROR;
 }
 
-static Purrr_Result create_image_views(VkDevice device, VkFormat format, uint32_t imageCount, VkImage *images, VkImageView *imageViews) {
-  if (!imageCount || !images || !imageViews) return PURRR_INVALID_ARGS_ERROR;
+static Purrr_Result create_image_views(VkDevice device, VkFormat format, bool color, uint32_t imageCount, VkImage *images, VkImageView *imageViews) {
+  if (!device || !imageCount || !images || !imageViews) return PURRR_INVALID_ARGS_ERROR;
 
   memset(imageViews, 0, sizeof(*imageViews) * imageCount);
 
@@ -184,7 +186,7 @@ static Purrr_Result create_image_views(VkDevice device, VkFormat format, uint32_
     .format = format,
     .components = {0},
     .subresourceRange = {
-      .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+      .aspectMask = (color?VK_IMAGE_ASPECT_COLOR_BIT:VK_IMAGE_ASPECT_DEPTH_BIT),
       .baseMipLevel = 0,
       .levelCount = 1,
       .baseArrayLayer = 0,
@@ -192,7 +194,7 @@ static Purrr_Result create_image_views(VkDevice device, VkFormat format, uint32_
     }
   };
 
-  while (imageCount && (--imageCount, true)) {
+  while (imageCount && imageCount--) {
     createInfo.image = images[imageCount];
 
     if (vkCreateImageView(device, &createInfo, VK_NULL_HANDLE, &imageViews[imageCount]) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
@@ -201,10 +203,12 @@ static Purrr_Result create_image_views(VkDevice device, VkFormat format, uint32_
   return PURRR_SUCCESS;
 }
 
-static Purrr_Result create_render_pass(VkDevice device, VkFormat format, VkRenderPass *renderPass) {
+static Purrr_Result create_render_pass(VkDevice device, VkFormat format, VkFormat depthFormat, bool depth, VkRenderPass *renderPass) {
   if (!device || !format || !renderPass) return PURRR_INVALID_ARGS_ERROR;
 
-  VkAttachmentDescription colorAttachment = {
+  VkAttachmentDescription *attachmentDescriptions = malloc(sizeof(*attachmentDescriptions) * (1+depth));
+  VkAttachmentReference *attachmentReferences = malloc(sizeof(*attachmentReferences) * (1+depth));
+  attachmentDescriptions[0] = (VkAttachmentDescription){
     .format = format,
     .samples = VK_SAMPLE_COUNT_1_BIT,
     .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
@@ -215,10 +219,28 @@ static Purrr_Result create_render_pass(VkDevice device, VkFormat format, VkRende
     .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
   };
 
-  VkAttachmentReference colorAttachmentRef = {
+  attachmentReferences[0] = (VkAttachmentReference){
     .attachment = 0,
     .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
   };
+
+  if (depth) {
+    attachmentDescriptions[1] = (VkAttachmentDescription){
+      .format = depthFormat,
+      .samples = VK_SAMPLE_COUNT_1_BIT,
+      .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+      .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+      .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+      .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+      .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+      .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+    };
+
+    attachmentReferences[1] = (VkAttachmentReference){
+      .attachment = 1,
+      .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+    };
+  }
 
   VkSubpassDescription subpass = {
     .flags = 0,
@@ -226,9 +248,9 @@ static Purrr_Result create_render_pass(VkDevice device, VkFormat format, VkRende
     .inputAttachmentCount = 0,
     .pInputAttachments = VK_NULL_HANDLE,
     .colorAttachmentCount = 1,
-    .pColorAttachments = &colorAttachmentRef,
+    .pColorAttachments = attachmentReferences,
     .pResolveAttachments = VK_NULL_HANDLE,
-    .pDepthStencilAttachment = VK_NULL_HANDLE,
+    .pDepthStencilAttachment = (depth?&attachmentReferences[1]:VK_NULL_HANDLE),
     .preserveAttachmentCount = 0,
     .pPreserveAttachments = VK_NULL_HANDLE
   };
@@ -236,10 +258,10 @@ static Purrr_Result create_render_pass(VkDevice device, VkFormat format, VkRende
   VkSubpassDependency dependency = {
     .srcSubpass = VK_SUBPASS_EXTERNAL,
     .dstSubpass = 0,
-    .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-    .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+    .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+    .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
     .srcAccessMask = 0,
-    .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+    .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
     .dependencyFlags = 0
   };
 
@@ -247,8 +269,8 @@ static Purrr_Result create_render_pass(VkDevice device, VkFormat format, VkRende
     .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
     .pNext = VK_NULL_HANDLE,
     .flags = 0,
-    .attachmentCount = 1,
-    .pAttachments = &colorAttachment,
+    .attachmentCount = 1+depth,
+    .pAttachments = attachmentDescriptions,
     .subpassCount = 1,
     .pSubpasses = &subpass,
     .dependencyCount = 1,
@@ -258,7 +280,7 @@ static Purrr_Result create_render_pass(VkDevice device, VkFormat format, VkRende
   return (vkCreateRenderPass(device, &createInfo, VK_NULL_HANDLE, renderPass) == VK_SUCCESS)?PURRR_SUCCESS:PURRR_INTERNAL_ERROR;
 }
 
-static Purrr_Result create_framebuffers(VkDevice device, VkRenderPass renderPass, uint32_t width, uint32_t height, uint32_t imageCount, VkImageView *imageViews, VkFramebuffer *framebuffers) {
+static Purrr_Result create_framebuffers(VkDevice device, VkRenderPass renderPass, uint32_t width, uint32_t height, bool depth, uint32_t imageCount, _Purrr_Image_Vulkan **depthImages, VkImageView *imageViews, VkFramebuffer *framebuffers) {
   if (!device || !renderPass || !imageCount || !imageViews || !framebuffers) return PURRR_INVALID_ARGS_ERROR;
 
   VkFramebufferCreateInfo createInfo = {
@@ -266,17 +288,22 @@ static Purrr_Result create_framebuffers(VkDevice device, VkRenderPass renderPass
     .pNext = VK_NULL_HANDLE,
     .flags = 0,
     .renderPass = renderPass,
-    .attachmentCount = 1,
+    .attachmentCount = 1+depth,
     .pAttachments = VK_NULL_HANDLE,
     .width = width,
     .height = height,
     .layers = 1
   };
 
-  while (imageCount && (--imageCount, true)) {
-    createInfo.pAttachments = &imageViews[imageCount];
+  VkImageView *attachments = malloc(sizeof(*createInfo.pAttachments) * createInfo.attachmentCount);
+  if (!attachments) return PURRR_BUY_MORE_RAM;
+  createInfo.pAttachments = attachments;
 
-    if (vkCreateFramebuffer(device, &createInfo, VK_NULL_HANDLE, &framebuffers[imageCount]) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
+  for (uint32_t i = 0; i < imageCount; ++i) {
+    attachments[0] = imageViews[i];
+    if (depth) attachments[1] = depthImages[i]->view;
+
+    if (vkCreateFramebuffer(device, &createInfo, VK_NULL_HANDLE, &framebuffers[i]) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
   }
 
   return PURRR_SUCCESS;
@@ -319,9 +346,27 @@ static Purrr_Result create_full_swapchain(_Purrr_Window_Vulkan *window, Purrr_Wi
     if (vkCreateSemaphore(context->device, &createInfo, VK_NULL_HANDLE, &window->renderSemaphores[i]) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
   }
 
-  if ((result = create_image_views(context->device, window->format, window->imageCount, window->images, window->imageViews)) < PURRR_SUCCESS) return result;
-  if ((result = create_render_pass(context->device, window->format, &window->renderPass)) < PURRR_SUCCESS) return result;
-  if ((result = create_framebuffers(context->device, window->renderPass, window->width, window->height, window->imageCount, window->imageViews, window->framebuffers)) < PURRR_SUCCESS) return result;
+  if ((result = create_image_views(context->device, window->format, true, window->imageCount, window->images, window->imageViews)) < PURRR_SUCCESS) return result;
+
+  VkFormat depthFormat = VK_FORMAT_D32_SFLOAT_S8_UINT;
+  if (window->depth) {
+    window->depthImages = malloc(sizeof(*window->depthImages) * window->imageCount);
+    if (!window->depthImages) return PURRR_BUY_MORE_RAM;
+
+    for (uint32_t i = 0; i < window->imageCount; ++i) {
+      if ((result = _purrr_create_image_vulkan(context, (Purrr_Image_Create_Info){
+        .type = PURRR_IMAGE_DEPTH_ATTACHMENT,
+        .format = PURRR_D32_SFLOAT_S8_UINT,
+        .width = window->width,
+        .height = window->height,
+        .pixels = NULL,
+        .sampler = PURRR_NULL_HANDLE
+      }, &window->depthImages[i])) < PURRR_SUCCESS) return result;
+    }
+  }
+
+  if ((result = create_render_pass(context->device, window->format, depthFormat, window->depth, &window->renderPass)) < PURRR_SUCCESS) return result;
+  if ((result = create_framebuffers(context->device, window->renderPass, window->width, window->height, window->depth, window->imageCount, window->depthImages, window->imageViews, window->framebuffers)) < PURRR_SUCCESS) return result;
 
   return PURRR_SUCCESS;
 }
@@ -345,6 +390,11 @@ static void destroy_swapchain(_Purrr_Window_Vulkan *window) {
       vkDestroyImageView(context->device, window->imageViews[i], VK_NULL_HANDLE);
 
     free(window->imageViews);
+  }
+  if (window->depthImages) {
+    for (uint32_t i = 0; i < window->imageCount; ++i)
+      (void)_purrr_destroy_image_vulkan(window->depthImages[i]);
+    free(window->depthImages);
   }
 
   if (window->renderPass) vkDestroyRenderPass(context->device, window->renderPass, VK_NULL_HANDLE);

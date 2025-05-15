@@ -186,9 +186,10 @@ Purrr_Result _purrr_renderer_begin_vulkan(_Purrr_Renderer_Vulkan *renderer, Purr
     if (window->renderer != renderer) return PURRR_INVALID_ARGS_ERROR;
 
     if (window->index >= renderer->windows.activeCount) return PURRR_SUCCESS;
-    assert(!window->depth); // TODO: Implement
 
-    VkClearValue clearValue = {{{color.r, color.g, color.b, color.a}}};
+    VkClearValue clearValues[2] = {0};
+    clearValues[0].color = (VkClearColorValue){{color.r, color.g, color.b, color.a}};
+    clearValues[1].depthStencil = (VkClearDepthStencilValue){1.0f, 0};
 
     VkRenderPassBeginInfo beginInfo = {
       .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
@@ -201,8 +202,8 @@ Purrr_Result _purrr_renderer_begin_vulkan(_Purrr_Renderer_Vulkan *renderer, Purr
           .height = window->height
         }
       },
-      .clearValueCount = 1,
-      .pClearValues = &clearValue
+      .clearValueCount = 1+window->depth,
+      .pClearValues = clearValues
     };
 
     vkCmdBeginRenderPass(renderer->commandBuffer, &beginInfo, VK_SUBPASS_CONTENTS_INLINE);

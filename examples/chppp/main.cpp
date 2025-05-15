@@ -146,7 +146,9 @@ int main(void) {
         programs[i] = windows[i].createProgram(Program::CreateInfo{
           2, shaders,
           1, &vertexBinding,
-          2, bindings
+          2, bindings,
+          false,
+          Program::DepthCompareOp::Never
         });
 
         ubos[i] = context.createBuffer(Buffer::CreateInfo{

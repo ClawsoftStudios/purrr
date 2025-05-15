@@ -17,12 +17,18 @@ struct _Purrr_Window_Vulkan {
   uint32_t width, height;
 
   VkFormat format;
+  VkFormat depthFormat;
+
   uint32_t imageCount;
-  VkSemaphore *renderSemaphores;
   VkImage *images;
   VkImageView *imageViews;
+
+  _Purrr_Image_Vulkan **depthImages;
+
   VkRenderPass renderPass;
   VkFramebuffer *framebuffers;
+
+  VkSemaphore *renderSemaphores;
 };
 
 Purrr_Result _purrr_create_window_surface(_Purrr_Context_Vulkan *context, void *win, _Purrr_Window_Vulkan *vulkanWindow);

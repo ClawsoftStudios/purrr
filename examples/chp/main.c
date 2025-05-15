@@ -158,7 +158,9 @@ int main(void) {
         .bindingCount = 2,
         .bindings = (Purrr_Program_Binding_Type[]){
           PURRR_PROGRAM_BINDING_IMAGE, PURRR_PROGRAM_BINDING_UNIFORM_BUFFER
-        }
+        },
+        .enableDepth = false,
+        .compareOp = PURRR_PROGRAM_DEPTH_COMPARE_NEVER
       }, &programs[i]));
 
       CHECK(purrr_create_buffer(context, (Purrr_Buffer_Create_Info){

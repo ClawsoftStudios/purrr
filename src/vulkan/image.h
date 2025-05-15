@@ -9,6 +9,7 @@
 
 typedef struct _Purrr_Image_Vulkan {
   _Purrr_Context_Vulkan *context;
+  Purrr_Image_Type type;
 
   _Purrr_Sampler_Vulkan *sampler;
 
@@ -18,6 +19,7 @@ typedef struct _Purrr_Image_Vulkan {
   VkImage image;
   VkDeviceMemory memory;
   VkImageView view;
+  VkImageAspectFlags aspectFlags;
 
   VkDescriptorSet descriptorSet;
 
