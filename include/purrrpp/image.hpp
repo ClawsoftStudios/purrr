@@ -6,14 +6,15 @@ namespace purrr {
 class Image : public Wrapper<Purrr_Image> {
   friend class Context;
 public:
-  enum class Type {
-    Texture = PURRR_IMAGE_TEXTURE,
-    // ColorAttachment = PURRR_IMAGE_COLOR_ATTACHMENT,
-    // DepthAttachment = PURRR_IMAGE_DEPTH_ATTACHMENT
+  enum class UsageFlagBits {
+    Texture = PURRR_IMAGE_USAGE_FLAG_TEXTURE,
+    Attachment = PURRR_IMAGE_USAGE_FLAG_ATTACHMENT
   };
 
+  using UsageFlags = Purrr_Image_Usage_Flags;
+
   struct CreateInfo {
-    Type type;
+    UsageFlags usage;
     Format format;
     uint32_t width, height;
     void *pixels;
@@ -23,7 +24,7 @@ private:
   inline Image(Purrr_Context context, const CreateInfo &createInfo)
   {
     Result result = purrr_create_image(context, (Purrr_Image_Create_Info){
-      (Purrr_Image_Type)createInfo.type,
+      createInfo.usage,
       (Purrr_Format)createInfo.format,
       createInfo.width,
       createInfo.height,

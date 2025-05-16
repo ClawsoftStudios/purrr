@@ -2,13 +2,11 @@
 
 #include "./format.h"
 
-static VkImageUsageFlags image_type_to_usage(Purrr_Image_Type type) {
-  switch (type) {
-  case PURRR_IMAGE_TEXTURE: return VK_IMAGE_USAGE_SAMPLED_BIT;
-  case PURRR_IMAGE_DEPTH_ATTACHMENT: return VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-  case COUNT_PURRR_IMAGE_TYPES:
-  default: return 0;
-  }
+static VkImageUsageFlags image_usage_to_usage(Purrr_Image_Usage_Flags usage, bool color) {
+  VkImageUsageFlags flags = 0;
+  if (usage & PURRR_IMAGE_USAGE_FLAG_TEXTURE) flags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+  if (usage & PURRR_IMAGE_USAGE_FLAG_ATTACHMENT) flags |= (color?VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT:VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+  return flags;
 }
 
 Purrr_Result _purrr_create_image_vulkan(_Purrr_Context_Vulkan *context, Purrr_Image_Create_Info createInfo, _Purrr_Image_Vulkan **image) {
@@ -24,19 +22,12 @@ Purrr_Result _purrr_create_image_vulkan(_Purrr_Context_Vulkan *context, Purrr_Im
   memset(img, 0, sizeof(*img));
 
   img->context = context;
-  img->type = createInfo.type;
+  img->usage = createInfo.usage;
 
-  switch (createInfo.type) {
-  case PURRR_IMAGE_TEXTURE: {
-    img->aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT;
-    if (!(img->sampler = (_Purrr_Sampler_Vulkan*)createInfo.sampler)) return PURRR_INVALID_ARGS_ERROR;
-  } break;
-  case PURRR_IMAGE_DEPTH_ATTACHMENT: {
-    img->aspectFlags = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
-  } break;
-  case COUNT_PURRR_IMAGE_TYPES:
-  default: return PURRR_INVALID_ARGS_ERROR;
-  }
+  if (createInfo.format >= PURRR_D32_SFLOAT_S8_UINT) img->aspectFlags = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+  else img->aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT;
+
+  if ((createInfo.usage & PURRR_IMAGE_USAGE_FLAG_TEXTURE) && !(img->sampler = (_Purrr_Sampler_Vulkan*)createInfo.sampler)) return PURRR_INVALID_ARGS_ERROR;
 
   img->stageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 
@@ -59,7 +50,7 @@ Purrr_Result _purrr_create_image_vulkan(_Purrr_Context_Vulkan *context, Purrr_Im
     .arrayLayers = 1,
     .samples = VK_SAMPLE_COUNT_1_BIT,
     .tiling = VK_IMAGE_TILING_OPTIMAL,
-    .usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | image_type_to_usage(createInfo.type),
+    .usage = image_usage_to_usage(createInfo.usage, img->aspectFlags == VK_IMAGE_ASPECT_COLOR_BIT),
     .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
     .queueFamilyIndexCount = 0,
     .pQueueFamilyIndices = VK_NULL_HANDLE,
@@ -95,8 +86,7 @@ Purrr_Result _purrr_create_image_vulkan(_Purrr_Context_Vulkan *context, Purrr_Im
   }
 
   Purrr_Result result = PURRR_SUCCESS;
-  switch (img->type) {
-  case PURRR_IMAGE_TEXTURE: {
+  if (img->usage & PURRR_IMAGE_USAGE_FLAG_TEXTURE) {
     if (createInfo.pixels) {
       if ((result = _purrr_transition_image_layout_vulkan(img, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_ACCESS_TRANSFER_WRITE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT)) < PURRR_SUCCESS) {
         _purrr_destroy_image_vulkan(img);
@@ -113,15 +103,17 @@ Purrr_Result _purrr_create_image_vulkan(_Purrr_Context_Vulkan *context, Purrr_Im
       _purrr_destroy_image_vulkan(img);
       return result;
     }
-  } break;
-  case PURRR_IMAGE_DEPTH_ATTACHMENT: {
-    if ((result = _purrr_transition_image_layout_vulkan(img, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT, VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT)) < PURRR_SUCCESS) {
+  }
+
+  if (img->usage & PURRR_IMAGE_USAGE_FLAG_ATTACHMENT) {
+    bool color = (img->aspectFlags == VK_IMAGE_ASPECT_COLOR_BIT);
+    VkImageLayout layout = (color?VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+    VkAccessFlags accessMask = (color?(VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT):(VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT));
+    VkPipelineStageFlagBits stage = (color?VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT:VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT);
+    if ((result = _purrr_transition_image_layout_vulkan(img, layout, accessMask, stage)) < PURRR_SUCCESS) {
       _purrr_destroy_image_vulkan(img);
       return result;
     }
-  } break;
-  case COUNT_PURRR_IMAGE_TYPES:
-  default: return PURRR_INVALID_ARGS_ERROR;
   }
 
   VkImageViewCreateInfo viewCreateInfo = {
@@ -151,7 +143,7 @@ Purrr_Result _purrr_create_image_vulkan(_Purrr_Context_Vulkan *context, Purrr_Im
     return PURRR_INTERNAL_ERROR;
   }
 
-  if (createInfo.type == PURRR_IMAGE_TEXTURE) {
+  if (createInfo.usage & PURRR_IMAGE_USAGE_FLAG_TEXTURE) {
     VkDescriptorSetAllocateInfo allocInfo = {
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
       .pNext = VK_NULL_HANDLE,

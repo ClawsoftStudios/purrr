@@ -9,7 +9,7 @@
 
 typedef struct _Purrr_Image_Vulkan {
   _Purrr_Context_Vulkan *context;
-  Purrr_Image_Type type;
+  Purrr_Image_Usage_Flags usage;
 
   _Purrr_Sampler_Vulkan *sampler;
 

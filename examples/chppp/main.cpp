@@ -242,7 +242,7 @@ static Image loadImage(const std::string &filepath, Context &context, const Samp
   if (!pixels) throw Result::FileSystemError;
 
   Image image = context.createImage(Image::CreateInfo{
-    Image::Type::Texture,
+    (Image::UsageFlags)(Image::UsageFlagBits::Texture),
     Format::R8G8B8A8Unorm,
     (uint32_t)width, (uint32_t)height,
     pixels,

@@ -355,7 +355,7 @@ static Purrr_Result create_full_swapchain(_Purrr_Window_Vulkan *window, Purrr_Wi
 
     for (uint32_t i = 0; i < window->imageCount; ++i) {
       if ((result = _purrr_create_image_vulkan(context, (Purrr_Image_Create_Info){
-        .type = PURRR_IMAGE_DEPTH_ATTACHMENT,
+        .usage = PURRR_IMAGE_USAGE_FLAG_ATTACHMENT,
         .format = PURRR_D32_SFLOAT_S8_UINT,
         .width = window->width,
         .height = window->height,

@@ -15,8 +15,8 @@ typedef struct Purrr_Color {
 #define PURRR_COLOR(hex) ((Purrr_Color){ \
   .r = (float)(((hex) >> (8*3)) & 0xFF) / 255.0f, \
   .g = (float)(((hex) >> (8*2)) & 0xFF) / 255.0f, \
-  .b = (float)(((hex) >> (8*1))  & 0xFF) / 255.0f, \
-  .a = (float)(((hex) >> (8*0))  & 0xFF) / 255.0f  \
+  .b = (float)(((hex) >> (8*1)) & 0xFF) / 255.0f, \
+  .a = (float)(((hex) >> (8*0)) & 0xFF) / 255.0f  \
 })
 
 Purrr_Result purrr_create_renderer(Purrr_Context context, Purrr_Renderer_Create_Info createInfo, Purrr_Renderer *renderer);

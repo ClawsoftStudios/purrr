@@ -121,7 +121,7 @@ int main(void) {
         .title = windowTitle,
         .width = width,
         .height = height,
-        .depth = false
+        .depth = true
       }, &windows[i]));
 
       purrr_set_window_key_callback(windows[i], on_key);
@@ -275,7 +275,7 @@ static Purrr_Result load_image(const char *filepath, Purrr_Context context, Purr
 
   Purrr_Result result = PURRR_SUCCESS;
   if ((result = purrr_create_image(context, (Purrr_Image_Create_Info){
-    .type = PURRR_IMAGE_TEXTURE,
+    .usage = PURRR_IMAGE_USAGE_FLAG_TEXTURE,
     .format = PURRR_R8G8B8A8_UNORM,
     .width = *width,
     .height = *height,
