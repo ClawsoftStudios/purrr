@@ -59,6 +59,7 @@ protected:
 #include "image.hpp"
 #include "program.hpp"
 #include "window.hpp"
+#include "renderTarget.hpp"
 #include "renderer.hpp"
 #include "context.hpp"
 

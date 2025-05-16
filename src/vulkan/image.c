@@ -3,7 +3,7 @@
 #include "./format.h"
 
 static VkImageUsageFlags image_usage_to_usage(Purrr_Image_Usage_Flags usage, bool color) {
-  VkImageUsageFlags flags = 0;
+  VkImageUsageFlags flags = VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
   if (usage & PURRR_IMAGE_USAGE_FLAG_TEXTURE) flags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
   if (usage & PURRR_IMAGE_USAGE_FLAG_ATTACHMENT) flags |= (color?VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT:VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
   return flags;
@@ -103,13 +103,11 @@ Purrr_Result _purrr_create_image_vulkan(_Purrr_Context_Vulkan *context, Purrr_Im
       _purrr_destroy_image_vulkan(img);
       return result;
     }
-  }
-
-  if (img->usage & PURRR_IMAGE_USAGE_FLAG_ATTACHMENT) {
+  } else if (img->usage & PURRR_IMAGE_USAGE_FLAG_ATTACHMENT) {
     bool color = (img->aspectFlags == VK_IMAGE_ASPECT_COLOR_BIT);
     VkImageLayout layout = (color?VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
     VkAccessFlags accessMask = (color?(VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT):(VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT));
-    VkPipelineStageFlagBits stage = (color?VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT:VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT);
+    VkPipelineStageFlagBits stage = (color?VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT:VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT);
     if ((result = _purrr_transition_image_layout_vulkan(img, layout, accessMask, stage)) < PURRR_SUCCESS) {
       _purrr_destroy_image_vulkan(img);
       return result;
@@ -271,7 +269,7 @@ Purrr_Result _purrr_copy_image_vulkan(_Purrr_Image_Vulkan *image, VkExtent2D siz
     .bufferRowLength = 0,
     .bufferImageHeight = 0,
     .imageSubresource = {
-      .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+      .aspectMask = image->aspectFlags,
       .mipLevel = 0,
       .baseArrayLayer = 0,
       .layerCount = 1
@@ -293,6 +291,45 @@ Purrr_Result _purrr_copy_image_vulkan(_Purrr_Image_Vulkan *image, VkExtent2D siz
 
   vkDestroyBuffer(context->device, stagingBuffer, VK_NULL_HANDLE);
   vkFreeMemory(context->device, stagingMemory, VK_NULL_HANDLE);
+
+  return PURRR_SUCCESS;
+}
+
+Purrr_Result _purrr_copy_image_from_image_vulkan(_Purrr_Image_Vulkan *image, _Purrr_Image_Vulkan *source) {
+  if (!image || !source) return PURRR_INVALID_ARGS_ERROR;
+
+  _Purrr_Context_Vulkan *context = image->context;
+
+  Purrr_Result result = PURRR_SUCCESS;
+
+  VkCommandBuffer cmdBuf = VK_NULL_HANDLE;
+  if ((result = _purrr_context_begin_one_time_command_buffer_vulkan(context, &cmdBuf)) < PURRR_SUCCESS) return result;
+
+  VkImageCopy region = {
+    .srcSubresource = {
+      .aspectMask = source->aspectFlags,
+      .mipLevel = 0,
+      .baseArrayLayer = 0,
+      .layerCount = 1
+    },
+    .srcOffset = { 0 },
+    .dstSubresource = {
+      .aspectMask = image->aspectFlags,
+      .mipLevel = 0,
+      .baseArrayLayer = 0,
+      .layerCount = 1
+    },
+    .dstOffset = { 0 },
+    .extent = {
+      .width = source->width,
+      .height = source->height,
+      .depth = 1
+    }
+  };
+
+  vkCmdCopyImage(cmdBuf, source->image, source->layout, image->image, image->layout, 1, &region);
+
+  if ((result = _purrr_context_submit_one_time_command_buffer_vulkan(context, cmdBuf)) < PURRR_SUCCESS) return result;
 
   return PURRR_SUCCESS;
 }

@@ -35,5 +35,6 @@ Purrr_Result _purrr_destroy_image_vulkan(_Purrr_Image_Vulkan *image);
 
 Purrr_Result _purrr_transition_image_layout_vulkan(_Purrr_Image_Vulkan *image, VkImageLayout newLayout, VkAccessFlags newAccessMask, VkPipelineStageFlags newStageMask);
 Purrr_Result _purrr_copy_image_vulkan(_Purrr_Image_Vulkan *image, VkExtent2D size, VkOffset2D offset, void *pixels);
+Purrr_Result _purrr_copy_image_from_image_vulkan(_Purrr_Image_Vulkan *image, _Purrr_Image_Vulkan *source);
 
 #endif //  __PURRR_VULKAN_IMAGE_H_

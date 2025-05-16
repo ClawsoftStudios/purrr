@@ -20,6 +20,7 @@ typedef struct Purrr_Handle_T *Purrr_Handle;
 #include "program.h"
 #include "renderer.h"
 #include "window.h"
+#include "renderTarget.h"
 
 #ifdef    __cplusplus
 }

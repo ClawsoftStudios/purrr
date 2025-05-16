@@ -1,5 +1,6 @@
 #include "./renderer.h"
 #include "./window.h"
+#include "./renderTarget.h"
 
 #ifdef PURRR_PLATFORM_WINDOWS
 #include "../win32/window.h"
@@ -229,7 +230,50 @@ Purrr_Result _purrr_renderer_begin_vulkan(_Purrr_Renderer_Vulkan *renderer, Purr
     vkCmdSetScissor(renderer->commandBuffer, 0, 1, &scissor);
   } break;
   case _PURRR_OBJECT_RENDER_TARGET: {
-    assert(0 && "Unimplemented");
+    _Purrr_Render_Target_Vulkan *target = (_Purrr_Render_Target_Vulkan*)renderTarget;
+
+    VkClearValue *clearValues = malloc(sizeof(*clearValues) * target->imageCount);
+    for (uint32_t i = 0; i < target->imageCount; ++i) {
+      if (i == target->depthIndex) clearValues[i].depthStencil = (VkClearDepthStencilValue){1.0f, 0};
+      else clearValues[i].color = (VkClearColorValue){{color.r, color.g, color.b, color.a}};
+    }
+
+    VkRenderPassBeginInfo beginInfo = {
+      .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+      .pNext = VK_NULL_HANDLE,
+      .renderPass = target->renderPass,
+      .framebuffer = target->framebuffer,
+      .renderArea = {
+        .extent = {
+          .width = target->width,
+          .height = target->height
+        }
+      },
+      .clearValueCount = target->imageCount,
+      .pClearValues = clearValues
+    };
+
+    vkCmdBeginRenderPass(renderer->commandBuffer, &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+    VkViewport viewport = {
+      .x = 0,
+      .y = 0,
+      .width = target->width,
+      .height = target->height,
+      .minDepth = 0.0f,
+      .maxDepth = 0.0f
+    };
+
+    VkRect2D scissor = {
+      .extent = {
+        .width = target->width,
+        .height = target->height
+      },
+      .offset = {0}
+    };
+
+    vkCmdSetViewport(renderer->commandBuffer, 0, 1, &viewport);
+    vkCmdSetScissor(renderer->commandBuffer, 0, 1, &scissor);
   } break;
   case _PURRR_OBJECT_CONTEXT:
   case _PURRR_OBJECT_RENDERER:

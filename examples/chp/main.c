@@ -275,7 +275,7 @@ static Purrr_Result load_image(const char *filepath, Purrr_Context context, Purr
 
   Purrr_Result result = PURRR_SUCCESS;
   if ((result = purrr_create_image(context, (Purrr_Image_Create_Info){
-    .usage = PURRR_IMAGE_USAGE_FLAG_TEXTURE,
+    .usage = PURRR_IMAGE_USAGE_FLAG_TEXTURE | PURRR_IMAGE_USAGE_FLAG_ATTACHMENT,
     .format = PURRR_R8G8B8A8_UNORM,
     .width = *width,
     .height = *height,
