@@ -170,6 +170,7 @@ void purrr_set_window_key_callback(Purrr_Window window, Purrr_Window_Key_Callbac
 void purrr_set_window_user_pointer(Purrr_Window window, void *userPointer);
 void *purrr_get_window_user_pointer(Purrr_Window window);
 
+double purrr_get_windows_time();
 void purrr_poll_windows();
 void purrr_wait_windows();
 

@@ -27,7 +27,10 @@ Purrr_Result _purrr_create_image_vulkan(_Purrr_Context_Vulkan *context, Purrr_Im
   if (createInfo.format >= PURRR_D32_SFLOAT_S8_UINT) img->aspectFlags = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
   else img->aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT;
 
-  if ((createInfo.usage & PURRR_IMAGE_USAGE_FLAG_TEXTURE) && !(img->sampler = (_Purrr_Sampler_Vulkan*)createInfo.sampler)) return PURRR_INVALID_ARGS_ERROR;
+  if ((createInfo.usage & PURRR_IMAGE_USAGE_FLAG_TEXTURE)) {
+    img->sampler = (_Purrr_Sampler_Vulkan*)createInfo.sampler; // Stupid MSVC doesn't allow assignment in if
+    if (!img->sampler) return PURRR_INVALID_ARGS_ERROR;
+  }
 
   img->stageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 
@@ -68,16 +71,18 @@ Purrr_Result _purrr_create_image_vulkan(_Purrr_Context_Vulkan *context, Purrr_Im
   VkPhysicalDeviceMemoryProperties memProperties = {0};
   vkGetPhysicalDeviceMemoryProperties(context->gpu, &memProperties);
 
-  VkMemoryAllocateInfo allocInfo = {
-    .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-    .pNext = VK_NULL_HANDLE,
-    .allocationSize = memRequirements.size,
-    .memoryTypeIndex = _purrr_vulkan_find_memory_type(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, memProperties)
-  };
+  {
+    VkMemoryAllocateInfo allocInfo = {
+      .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+      .pNext = VK_NULL_HANDLE,
+      .allocationSize = memRequirements.size,
+      .memoryTypeIndex = _purrr_vulkan_find_memory_type(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, memProperties)
+    };
 
-  if (vkAllocateMemory(context->device, &allocInfo, VK_NULL_HANDLE, &img->memory) != VK_SUCCESS) {
-    _purrr_destroy_image_vulkan(img);
-    return PURRR_INTERNAL_ERROR;
+    if (vkAllocateMemory(context->device, &allocInfo, VK_NULL_HANDLE, &img->memory) != VK_SUCCESS) {
+      _purrr_destroy_image_vulkan(img);
+      return PURRR_INTERNAL_ERROR;
+    }
   }
 
   if (vkBindImageMemory(context->device, img->image, img->memory, 0) != VK_SUCCESS) {

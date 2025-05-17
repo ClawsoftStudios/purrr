@@ -212,8 +212,8 @@ Purrr_Result _purrr_renderer_begin_vulkan(_Purrr_Renderer_Vulkan *renderer, Purr
     VkViewport viewport = {
       .x = 0,
       .y = 0,
-      .width = window->width,
-      .height = window->height,
+      .width = (float)window->width,
+      .height = (float)window->height,
       .minDepth = 0.0f,
       .maxDepth = 0.0f
     };
@@ -258,8 +258,8 @@ Purrr_Result _purrr_renderer_begin_vulkan(_Purrr_Renderer_Vulkan *renderer, Purr
     VkViewport viewport = {
       .x = 0,
       .y = 0,
-      .width = target->width,
-      .height = target->height,
+      .width = (float)target->width,
+      .height = (float)target->height,
       .minDepth = 0.0f,
       .maxDepth = 0.0f
     };

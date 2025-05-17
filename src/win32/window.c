@@ -54,7 +54,7 @@ static LRESULT window_procedure(HWND handle, UINT msg, WPARAM wParam, LPARAM lPa
   case WM_KEYDOWN:
   case WM_KEYUP: {
     WORD scancode = (HIWORD(lParam) & 0x1FF);
-    if (!scancode) scancode = MapVirtualKeyW((UINT)wParam, MAPVK_VK_TO_VSC);
+    if (!scancode) scancode = (WORD)MapVirtualKeyW((UINT)wParam, MAPVK_VK_TO_VSC);
     if (scancode == 0x54) scancode = 0x137;
     if (scancode == 0x146) scancode = 0x45;
     if (scancode == 0x136) scancode = 0x36;
@@ -174,6 +174,16 @@ Purrr_Result _purrr_get_window_size_win32(_Purrr_Window_Win32 *window, int *widt
   if (height) *height = rect.bottom - rect.top;
 
   return PURRR_SUCCESS;
+}
+
+static uint64_t sTimerFrequency = 0;
+
+double purrr_get_windows_time() { // Based on https://github.com/glfw/glfw/blob/master/src/win32_time.c
+  if (!sTimerFrequency) QueryPerformanceFrequency((LARGE_INTEGER*)&sTimerFrequency);
+
+  uint64_t value = 0;
+  QueryPerformanceCounter((LARGE_INTEGER*)&value);
+  return ((double)value / (double)sTimerFrequency);
 }
 
 void purrr_poll_windows() {
@@ -338,7 +348,7 @@ static void create_key_tables(_Purrr_Window_Win32 *window) {
   window->keycodes[0x037] = PURRR_KEY_NP_MULTIPLY;
   window->keycodes[0x04A] = PURRR_KEY_NP_SUBTRACT;
 
-  for (int scancode = 0; scancode < 512; ++scancode) {
+  for (WORD scancode = 0; scancode < 512; ++scancode) {
     if (window->keycodes[scancode] != (Purrr_Key)-1)
       window->scancodes[window->keycodes[scancode]] = scancode;
   }

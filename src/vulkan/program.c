@@ -264,7 +264,7 @@ Purrr_Result _purrr_create_program_vulkan(Purrr_Handle renderTarget, Purrr_Progr
       }
     }
 
-    VkShaderModuleCreateInfo createInfo = {
+    VkShaderModuleCreateInfo moduleCreateInfo = {
       .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
       .pNext = VK_NULL_HANDLE,
       .flags = 0,
@@ -272,7 +272,7 @@ Purrr_Result _purrr_create_program_vulkan(Purrr_Handle renderTarget, Purrr_Progr
       .pCode = (uint32_t*)code
     };
 
-    if (vkCreateShaderModule(prog->context->device, &createInfo, VK_NULL_HANDLE, &stages[i].module) != VK_SUCCESS) {
+    if (vkCreateShaderModule(prog->context->device, &moduleCreateInfo, VK_NULL_HANDLE, &stages[i].module) != VK_SUCCESS) {
       free(bindings);
       free(attributes);
       free(stages);
