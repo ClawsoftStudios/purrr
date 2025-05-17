@@ -1,0 +1,10 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+includedir=@CMAKE_INSTALL_FULL_INCLUDEDIR@
+libdir=@CMAKE_INSTALL_FULL_LIBDIR@
+
+Name: purrr
+Description: C rendering library
+Version: @PURRR_VERSION@
+Libs: -L${libdir} -l@PURRR_LIB_NAME@@PURRR_LIB_NAME_SUFFIX@
+Cflags: -I${includedir}
