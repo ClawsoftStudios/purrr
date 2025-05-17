@@ -132,7 +132,7 @@ typedef enum Purrr_Key { // inspired by https://www.glfw.org/docs/3.3/group__key
   PURRR_KEY_NP_SUBTRACT,
   PURRR_KEY_WORLD_2,
 
-  PURRR_KEY_LAST // Rename to COUNT_PURRR_KEYS
+  COUNT_PURRR_KEYS
 } Purrr_Key;
 
 typedef enum Purrr_Key_Modifier {

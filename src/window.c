@@ -106,12 +106,12 @@ Purrr_Result purrr_get_window_size(Purrr_Window window, int *width, int *height)
 }
 
 Purrr_Result purrr_is_window_key_down(Purrr_Window window, Purrr_Key key) {
-  if (!window || key >= PURRR_KEY_LAST) return PURRR_INVALID_ARGS_ERROR;
+  if (!window || key >= COUNT_PURRR_KEYS) return PURRR_INVALID_ARGS_ERROR;
   return _purrr_get_window_key(window, key);
 }
 
 Purrr_Result purrr_is_window_key_up(Purrr_Window window, Purrr_Key key) {
-  if (!window || key >= PURRR_KEY_LAST) return PURRR_INVALID_ARGS_ERROR;
+  if (!window || key >= COUNT_PURRR_KEYS) return PURRR_INVALID_ARGS_ERROR;
   return !_purrr_get_window_key(window, key);
 }
 
@@ -121,7 +121,7 @@ void _purrr_set_window_key(Purrr_Window window, int16_t scancode, Purrr_Key key,
   if (!window) return;
 
   Purrr_Key_Action action = (Purrr_Key_Action)down;
-  if (key >= 0 && key < PURRR_KEY_LAST) {
+  if (key >= 0 && key < COUNT_PURRR_KEYS) {
     if (action == PURRR_KEY_ACTION_RELEASE && !_purrr_get_window_key(window, key)) return;
     if (action == PURRR_KEY_ACTION_PRESS && _purrr_get_window_key(window, key)) action = PURRR_KEY_ACTION_REPEAT;
 

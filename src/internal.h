@@ -42,7 +42,7 @@ struct Purrr_Window_T {
   bool shouldClose;
   int width, height;
 
-  uint8_t keys[(PURRR_KEY_LAST+7)/8];
+  uint8_t keys[(COUNT_PURRR_KEYS+7)/8];
 
   void *userPointer;
 

@@ -19,7 +19,7 @@ typedef struct _Purrr_Window_Win32 {
   wchar_t *title;
 
   Purrr_Key keycodes[512];
-  int16_t scancodes[PURRR_KEY_LAST];
+  int16_t scancodes[COUNT_PURRR_KEYS];
 } _Purrr_Window_Win32;
 
 Purrr_Result _purrr_create_window_win32(Purrr_Window realWindow, Purrr_Window_Create_Info createInfo, _Purrr_Window_Win32 *window);
