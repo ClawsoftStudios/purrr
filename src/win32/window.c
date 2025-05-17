@@ -11,6 +11,7 @@
 #include <assert.h>
 
 static void create_key_tables(_Purrr_Window_Win32 *window);
+static Purrr_Key_Modifiers get_modifiers();
 
 static wchar_t *cstr_to_wstr(const char *cstr, int *length) {
   if (!length || !cstr) return NULL;
@@ -82,7 +83,7 @@ static LRESULT window_procedure(HWND handle, UINT msg, WPARAM wParam, LPARAM lPa
       }
     } else if (wParam == VK_PROCESSKEY) return DefWindowProc(handle, msg, wParam, lParam);
 
-    Purrr_Key_Modifiers modifiers = 0; // TODO:
+    Purrr_Key_Modifiers modifiers = get_modifiers();
 
     bool up = (HIWORD(lParam) & KF_UP);
     if (up && wParam == VK_SHIFT) {
@@ -352,6 +353,25 @@ static void create_key_tables(_Purrr_Window_Win32 *window) {
     if (window->keycodes[scancode] != (Purrr_Key)-1)
       window->scancodes[window->keycodes[scancode]] = scancode;
   }
+}
+
+static Purrr_Key_Modifiers get_modifiers() {
+  Purrr_Key_Modifiers modifiers = 0;
+
+  if (GetKeyState(VK_SHIFT) & 0x8000)
+    modifiers |= PURRR_KEY_MODIFIER_SHIFT;
+  if (GetKeyState(VK_CONTROL) & 0x8000)
+    modifiers |= PURRR_KEY_MODIFIER_CONTROL;
+  if (GetKeyState(VK_MENU) & 0x8000)
+    modifiers |= PURRR_KEY_MODIFIER_ALT;
+  if ((GetKeyState(VK_LWIN) | GetKeyState(VK_RWIN)) & 0x8000)
+    modifiers |= PURRR_KEY_MODIFIER_SUPER;
+  if (GetKeyState(VK_CAPITAL) & 1)
+    modifiers |= PURRR_KEY_MODIFIER_CAPS_LOCK;
+  if (GetKeyState(VK_NUMLOCK) & 1)
+    modifiers |= PURRR_KEY_MODIFIER_NUM_LOCK;
+
+  return modifiers;
 }
 
 void purrr_set_window_key_callback(Purrr_Window window, Purrr_Window_Key_Callback callback) {
