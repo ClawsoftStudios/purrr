@@ -110,8 +110,8 @@ Purrr_Result _purrr_create_program_vulkan(Purrr_Handle renderTarget, Purrr_Progr
     .rasterizerDiscardEnable = VK_FALSE,
     .polygonMode = VK_POLYGON_MODE_FILL,
     .lineWidth = 1.0f,
-    .cullMode = VK_CULL_MODE_BACK_BIT,
-    .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
+    .cullMode = (VkCullModeFlagBits)createInfo.cullMode,
+    .frontFace = (VkFrontFace)createInfo.frontFace,
     .depthBiasEnable = VK_FALSE
   };
 

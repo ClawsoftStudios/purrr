@@ -48,6 +48,22 @@ typedef enum Purrr_Program_Depth_Compare_Op {
   COUNT_PURRR_PROGRAM_DEPTH_COMPARE_OPS
 } Purrr_Program_Depth_Compare_Op;
 
+typedef enum Purrr_Program_Cull_Mode {
+  PURRR_PROGRAM_CULL_NONE = 0,
+  PURRR_PROGRAM_CULL_FRONT_BIT,
+  PURRR_PROGRAM_CULL_BACK_BIT,
+  PURRR_PROGRAM_CULL_FRONT_AND_BACK,
+
+  COUNT_PURRR_PROGRAM_CULL_MODES
+} Purrr_Program_Cull_Mode;
+
+typedef enum Purrr_Program_Front_Face {
+  PURRR_PROGRAM_FRONT_FACE_COUNTER_CLOCKWISE = 0,
+  PURRR_PROGRAM_FRONT_FACE_CLOCKWISE,
+
+  COUNT_PURRR_PROGRAM_FRONT_FACES
+} Purrr_Program_Front_Face;
+
 typedef struct Purrr_Program_Create_Info {
   uint32_t shaderCount;
   const Purrr_Program_Shader_Info *shaders;
@@ -57,6 +73,8 @@ typedef struct Purrr_Program_Create_Info {
   const Purrr_Program_Binding_Type *bindings;
   bool enableDepth;
   Purrr_Program_Depth_Compare_Op compareOp;
+  Purrr_Program_Cull_Mode cullMode;
+  Purrr_Program_Front_Face frontFace;
 } Purrr_Program_Create_Info;
 
 Purrr_Result purrr_create_program(Purrr_Handle renderTarget, Purrr_Program_Create_Info createInfo, Purrr_Program *program);
