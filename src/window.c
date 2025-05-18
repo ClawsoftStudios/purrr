@@ -115,6 +115,18 @@ Purrr_Result purrr_is_window_key_up(Purrr_Window window, Purrr_Key key) {
   return !_purrr_get_window_key(window, key);
 }
 
+void purrr_set_window_key_callback(Purrr_Window window, Purrr_Window_Key_Callback callback) {
+  if (window) window->keyCallback = callback;
+}
+
+void purrr_set_window_user_pointer(Purrr_Window window, void *userPointer) {
+  if (window) window->userPointer = userPointer;
+}
+
+void *purrr_get_window_user_pointer(Purrr_Window window) {
+  return (window?window->userPointer:NULL);
+}
+
 
 
 void _purrr_set_window_key(Purrr_Window window, int16_t scancode, Purrr_Key key, bool down, Purrr_Key_Modifiers modifiers) {
