@@ -14,10 +14,9 @@
 #define clamp(x, a, b) max(min(x, a), b)
 #endif // clamp
 
-static Purrr_Result create_swapchain(VkPhysicalDevice gpu, VkDevice device, VkSurfaceKHR surface, uint32_t *width, uint32_t *height, VkFormat *format, VkSwapchainKHR *swapchain);
-static Purrr_Result create_image_views(VkDevice device, VkFormat format, bool color, uint32_t imageCount, VkImage *images, VkImageView *imageViews);
+static Purrr_Result create_swapchain(VkPhysicalDevice gpu, VkDevice device, VkSurfaceKHR surface, Purrr_Image_Usage_Flags imageUsage, uint32_t *width, uint32_t *height, VkFormat *format, VkSwapchainKHR *swapchain);
 static Purrr_Result create_render_pass(VkDevice device, VkFormat format, VkFormat depthFormat, bool depth, VkRenderPass *renderPass);
-static Purrr_Result create_framebuffers(VkDevice device, VkRenderPass renderPass, uint32_t width, uint32_t height, bool depth, uint32_t imageCount, _Purrr_Image_Vulkan **depthImages, VkImageView *imageViews, VkFramebuffer *framebuffers);
+static Purrr_Result create_framebuffers(VkDevice device, VkRenderPass renderPass, uint32_t width, uint32_t height, bool depth, uint32_t imageCount, _Purrr_Image_Vulkan **depthImages, _Purrr_Image_Vulkan **images, VkFramebuffer *framebuffers);
 
 static Purrr_Result create_full_swapchain(_Purrr_Window_Vulkan *window, Purrr_Window realWindow);
 static void destroy_swapchain(_Purrr_Window_Vulkan *window);
@@ -32,6 +31,8 @@ Purrr_Result _purrr_create_window_vulkan(_Purrr_Renderer_Vulkan *renderer, Purrr
   if ((result = _purrr_create_window_surface(context, platform, window)) < PURRR_SUCCESS) return result;
 
   window->depth = createInfo.depth;
+  window->imageUsage = PURRR_IMAGE_USAGE_FLAG_ATTACHMENT | createInfo.imageUsage;
+  window->sampler = createInfo.sampler;
 
   if ((result = create_full_swapchain(window, realWindow)) < PURRR_SUCCESS) return result;
 
@@ -57,6 +58,12 @@ Purrr_Result _purrr_destroy_window_vulkan(_Purrr_Window_Vulkan *window) {
 
   free(window);
 
+  return PURRR_SUCCESS;
+}
+
+Purrr_Result _purrr_get_window_image_vulkan(_Purrr_Window_Vulkan *window, _Purrr_Image_Vulkan **image) {
+  if (!window || !image) return PURRR_INVALID_ARGS_ERROR;
+  *image = window->images[window->renderer->windows.imageIndices[window->index]];
   return PURRR_SUCCESS;
 }
 
@@ -86,7 +93,7 @@ Purrr_Result _purrr_recreate_window_swapchain(Purrr_Window realWindow, _Purrr_Wi
   return PURRR_TRUE;
 }
 
-static Purrr_Result create_swapchain(VkPhysicalDevice gpu, VkDevice device, VkSurfaceKHR surface, uint32_t *width, uint32_t *height, VkFormat *format, VkSwapchainKHR *swapchain) {
+static Purrr_Result create_swapchain(VkPhysicalDevice gpu, VkDevice device, VkSurfaceKHR surface, Purrr_Image_Usage_Flags imageUsage, uint32_t *width, uint32_t *height, VkFormat *format, VkSwapchainKHR *swapchain) {
   if (!gpu || !device || !surface || !width || !height || !format || !swapchain) return PURRR_INVALID_ARGS_ERROR;
 
   VkSurfaceCapabilitiesKHR capabilities = {0};
@@ -156,7 +163,7 @@ static Purrr_Result create_swapchain(VkPhysicalDevice gpu, VkDevice device, VkSu
     .imageColorSpace = surfaceFormat.colorSpace,
     .imageExtent = extent,
     .imageArrayLayers = 1,
-    .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+    .imageUsage = _purrr_image_usage_flags_to_vk_usage(imageUsage, true),
     .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE,
     .queueFamilyIndexCount = 0,
     .pQueueFamilyIndices = VK_NULL_HANDLE,
@@ -170,37 +177,6 @@ static Purrr_Result create_swapchain(VkPhysicalDevice gpu, VkDevice device, VkSu
   *format = surfaceFormat.format;
 
   return (vkCreateSwapchainKHR(device, &createInfo, VK_NULL_HANDLE, swapchain) == VK_SUCCESS)?PURRR_SUCCESS:PURRR_INTERNAL_ERROR;
-}
-
-static Purrr_Result create_image_views(VkDevice device, VkFormat format, bool color, uint32_t imageCount, VkImage *images, VkImageView *imageViews) {
-  if (!device || !imageCount || !images || !imageViews) return PURRR_INVALID_ARGS_ERROR;
-
-  memset(imageViews, 0, sizeof(*imageViews) * imageCount);
-
-  VkImageViewCreateInfo createInfo = {
-    .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-    .pNext = VK_NULL_HANDLE,
-    .flags = 0,
-    .image = VK_NULL_HANDLE,
-    .viewType = VK_IMAGE_VIEW_TYPE_2D,
-    .format = format,
-    .components = {0},
-    .subresourceRange = {
-      .aspectMask = (color?VK_IMAGE_ASPECT_COLOR_BIT:VK_IMAGE_ASPECT_DEPTH_BIT),
-      .baseMipLevel = 0,
-      .levelCount = 1,
-      .baseArrayLayer = 0,
-      .layerCount = 1
-    }
-  };
-
-  while (imageCount && imageCount--) {
-    createInfo.image = images[imageCount];
-
-    if (vkCreateImageView(device, &createInfo, VK_NULL_HANDLE, &imageViews[imageCount]) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
-  }
-
-  return PURRR_SUCCESS;
 }
 
 static Purrr_Result create_render_pass(VkDevice device, VkFormat format, VkFormat depthFormat, bool depth, VkRenderPass *renderPass) {
@@ -280,8 +256,8 @@ static Purrr_Result create_render_pass(VkDevice device, VkFormat format, VkForma
   return (vkCreateRenderPass(device, &createInfo, VK_NULL_HANDLE, renderPass) == VK_SUCCESS)?PURRR_SUCCESS:PURRR_INTERNAL_ERROR;
 }
 
-static Purrr_Result create_framebuffers(VkDevice device, VkRenderPass renderPass, uint32_t width, uint32_t height, bool depth, uint32_t imageCount, _Purrr_Image_Vulkan **depthImages, VkImageView *imageViews, VkFramebuffer *framebuffers) {
-  if (!device || !renderPass || !imageCount || !imageViews || !framebuffers) return PURRR_INVALID_ARGS_ERROR;
+static Purrr_Result create_framebuffers(VkDevice device, VkRenderPass renderPass, uint32_t width, uint32_t height, bool depth, uint32_t imageCount, _Purrr_Image_Vulkan **depthImages, _Purrr_Image_Vulkan **images, VkFramebuffer *framebuffers) {
+  if (!device || !renderPass || !imageCount || !images || !framebuffers) return PURRR_INVALID_ARGS_ERROR;
 
   VkFramebufferCreateInfo createInfo = {
     .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
@@ -300,7 +276,7 @@ static Purrr_Result create_framebuffers(VkDevice device, VkRenderPass renderPass
   createInfo.pAttachments = attachments;
 
   for (uint32_t i = 0; i < imageCount; ++i) {
-    attachments[0] = imageViews[i];
+    attachments[0] = images[i]->view;
     if (depth) attachments[1] = depthImages[i]->view;
 
     if (vkCreateFramebuffer(device, &createInfo, VK_NULL_HANDLE, &framebuffers[i]) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
@@ -316,21 +292,38 @@ static Purrr_Result create_full_swapchain(_Purrr_Window_Vulkan *window, Purrr_Wi
 
   window->width = window->fullWidth = realWindow->width;
   window->height = window->fullHeight = realWindow->height;
-  if ((result = create_swapchain(context->gpu, context->device, window->surface, &window->width, &window->height, &window->format, &window->swapchain)) < PURRR_SUCCESS) return result;
+  if ((result = create_swapchain(context->gpu, context->device, window->surface, window->imageUsage, &window->width, &window->height, &window->format, &window->swapchain)) < PURRR_SUCCESS) return result;
 
   {
     if (vkGetSwapchainImagesKHR(context->device, window->swapchain, &window->imageCount, VK_NULL_HANDLE) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
 
+    VkImage *swapchainImages = malloc(sizeof(*swapchainImages) * window->imageCount);
+    if (!swapchainImages) return PURRR_BUY_MORE_RAM;
+    if (vkGetSwapchainImagesKHR(context->device, window->swapchain, &window->imageCount, swapchainImages) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
+
     window->images = malloc(sizeof(*window->images) * window->imageCount);
     if (!window->images) return PURRR_BUY_MORE_RAM;
 
-    window->imageViews = malloc(sizeof(*window->imageViews) * window->imageCount);
-    if (!window->imageViews) return PURRR_BUY_MORE_RAM;
+    _Purrr_Image_Create_Info_Vulkan_Ex createInfo = {
+      .usage = window->imageUsage,
+      .format = PURRR_B8G8R8A8_UNORM,
+      .width = window->width,
+      .height = window->height,
+      .pixels = NULL,
+      .sampler = window->sampler,
+      .image = VK_NULL_HANDLE,
+      .createMemory = false
+    };
+
+    for (uint32_t i = 0; i < window->imageCount; ++i) {
+      createInfo.image = swapchainImages[i];
+      if ((result = _purrr_create_image_vulkan_ex(context, createInfo, &window->images[i])) < PURRR_SUCCESS) return result;
+    }
+
+    free(swapchainImages);
 
     window->framebuffers = malloc(sizeof(*window->framebuffers) * window->imageCount);
     if (!window->framebuffers) return PURRR_BUY_MORE_RAM;
-
-    if (vkGetSwapchainImagesKHR(context->device, window->swapchain, &window->imageCount, window->images) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
   }
 
   window->renderSemaphores = malloc(sizeof(*window->renderSemaphores) * window->imageCount);
@@ -345,8 +338,6 @@ static Purrr_Result create_full_swapchain(_Purrr_Window_Vulkan *window, Purrr_Wi
 
     if (vkCreateSemaphore(context->device, &createInfo, VK_NULL_HANDLE, &window->renderSemaphores[i]) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
   }
-
-  if ((result = create_image_views(context->device, window->format, true, window->imageCount, window->images, window->imageViews)) < PURRR_SUCCESS) return result;
 
   VkFormat depthFormat = VK_FORMAT_D32_SFLOAT_S8_UINT;
   if (window->depth) {
@@ -366,7 +357,7 @@ static Purrr_Result create_full_swapchain(_Purrr_Window_Vulkan *window, Purrr_Wi
   }
 
   if ((result = create_render_pass(context->device, window->format, depthFormat, window->depth, &window->renderPass)) < PURRR_SUCCESS) return result;
-  if ((result = create_framebuffers(context->device, window->renderPass, window->width, window->height, window->depth, window->imageCount, window->depthImages, window->imageViews, window->framebuffers)) < PURRR_SUCCESS) return result;
+  if ((result = create_framebuffers(context->device, window->renderPass, window->width, window->height, window->depth, window->imageCount, window->depthImages, window->images, window->framebuffers)) < PURRR_SUCCESS) return result;
 
   return PURRR_SUCCESS;
 }
@@ -384,13 +375,12 @@ static void destroy_swapchain(_Purrr_Window_Vulkan *window) {
     free(window->renderSemaphores);
   }
 
-  if (window->images) free(window->images);
-  if (window->imageViews) {
+  if (window->images) {
     for (uint32_t i = 0; i < window->imageCount; ++i)
-      vkDestroyImageView(context->device, window->imageViews[i], VK_NULL_HANDLE);
-
-    free(window->imageViews);
+      (void)_purrr_destroy_image_vulkan(window->images[i]);
+    free(window->images);
   }
+
   if (window->depthImages) {
     for (uint32_t i = 0; i < window->imageCount; ++i)
       (void)_purrr_destroy_image_vulkan(window->depthImages[i]);

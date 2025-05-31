@@ -2,7 +2,7 @@
 
 #include "./format.h"
 
-static VkImageUsageFlags image_usage_to_usage(Purrr_Image_Usage_Flags usage, bool color) {
+VkImageUsageFlags _purrr_image_usage_flags_to_vk_usage(Purrr_Image_Usage_Flags usage, bool color) {
   VkImageUsageFlags flags = VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
   if (usage & PURRR_IMAGE_USAGE_FLAG_TEXTURE) flags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
   if (usage & PURRR_IMAGE_USAGE_FLAG_ATTACHMENT) flags |= (color?VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT:VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
@@ -10,6 +10,20 @@ static VkImageUsageFlags image_usage_to_usage(Purrr_Image_Usage_Flags usage, boo
 }
 
 Purrr_Result _purrr_create_image_vulkan(_Purrr_Context_Vulkan *context, Purrr_Image_Create_Info createInfo, _Purrr_Image_Vulkan **image) {
+  return _purrr_create_image_vulkan_ex(context, (_Purrr_Image_Create_Info_Vulkan_Ex){
+    .usage = createInfo.usage,
+    .format = createInfo.format,
+    .width = createInfo.width,
+    .height = createInfo.height,
+    .pixels = createInfo.pixels,
+    .sampler = createInfo.sampler,
+
+    .image = VK_NULL_HANDLE,
+    .createMemory = true
+  }, image);
+}
+
+Purrr_Result _purrr_create_image_vulkan_ex(_Purrr_Context_Vulkan *context, _Purrr_Image_Create_Info_Vulkan_Ex createInfo, _Purrr_Image_Vulkan **image) {
   if (!context || !image) return PURRR_INVALID_ARGS_ERROR;
   if (createInfo.format >= COUNT_PURRR_FORMATS || !createInfo.width || !createInfo.height) return PURRR_INVALID_ARGS_ERROR;
 
@@ -38,40 +52,44 @@ Purrr_Result _purrr_create_image_vulkan(_Purrr_Context_Vulkan *context, Purrr_Im
   img->width = createInfo.width;
   img->height = createInfo.height;
 
-  VkImageCreateInfo imageCreateInfo = {
-    .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-    .pNext = VK_NULL_HANDLE,
-    .flags = 0,
-    .imageType = VK_IMAGE_TYPE_2D,
-    .format = _purrr_format_to_vk_format(img->format),
-    .extent = {
-      .width = createInfo.width,
-      .height = createInfo.height,
-      .depth = 1
-    },
-    .mipLevels = 1,
-    .arrayLayers = 1,
-    .samples = VK_SAMPLE_COUNT_1_BIT,
-    .tiling = VK_IMAGE_TILING_OPTIMAL,
-    .usage = image_usage_to_usage(createInfo.usage, img->aspectFlags == VK_IMAGE_ASPECT_COLOR_BIT),
-    .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-    .queueFamilyIndexCount = 0,
-    .pQueueFamilyIndices = VK_NULL_HANDLE,
-    .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
-  };
+  img->ownsImage = !createInfo.image;
+  if (!img->ownsImage) img->image = createInfo.image;
+  else {
+    VkImageCreateInfo imageCreateInfo = {
+      .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+      .pNext = VK_NULL_HANDLE,
+      .flags = 0,
+      .imageType = VK_IMAGE_TYPE_2D,
+      .format = _purrr_format_to_vk_format(img->format),
+      .extent = {
+        .width = createInfo.width,
+        .height = createInfo.height,
+        .depth = 1
+      },
+      .mipLevels = 1,
+      .arrayLayers = 1,
+      .samples = VK_SAMPLE_COUNT_1_BIT,
+      .tiling = VK_IMAGE_TILING_OPTIMAL,
+      .usage = _purrr_image_usage_flags_to_vk_usage(createInfo.usage, img->aspectFlags == VK_IMAGE_ASPECT_COLOR_BIT),
+      .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+      .queueFamilyIndexCount = 0,
+      .pQueueFamilyIndices = VK_NULL_HANDLE,
+      .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
+    };
 
-  if (vkCreateImage(context->device, &imageCreateInfo, VK_NULL_HANDLE, &img->image) != VK_SUCCESS) {
-    _purrr_destroy_image_vulkan(img);
-    return PURRR_INTERNAL_ERROR;
+    if (vkCreateImage(context->device, &imageCreateInfo, VK_NULL_HANDLE, &img->image) != VK_SUCCESS) {
+      _purrr_destroy_image_vulkan(img);
+      return PURRR_INTERNAL_ERROR;
+    }
   }
 
-  VkMemoryRequirements memRequirements = {0};
-  vkGetImageMemoryRequirements(context->device, img->image, &memRequirements);
+  if (createInfo.createMemory) {
+    VkMemoryRequirements memRequirements = {0};
+    vkGetImageMemoryRequirements(context->device, img->image, &memRequirements);
 
-  VkPhysicalDeviceMemoryProperties memProperties = {0};
-  vkGetPhysicalDeviceMemoryProperties(context->gpu, &memProperties);
+    VkPhysicalDeviceMemoryProperties memProperties = {0};
+    vkGetPhysicalDeviceMemoryProperties(context->gpu, &memProperties);
 
-  {
     VkMemoryAllocateInfo allocInfo = {
       .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
       .pNext = VK_NULL_HANDLE,
@@ -83,11 +101,11 @@ Purrr_Result _purrr_create_image_vulkan(_Purrr_Context_Vulkan *context, Purrr_Im
       _purrr_destroy_image_vulkan(img);
       return PURRR_INTERNAL_ERROR;
     }
-  }
 
-  if (vkBindImageMemory(context->device, img->image, img->memory, 0) != VK_SUCCESS) {
-    _purrr_destroy_image_vulkan(img);
-    return PURRR_INTERNAL_ERROR;
+    if (vkBindImageMemory(context->device, img->image, img->memory, 0) != VK_SUCCESS) {
+      _purrr_destroy_image_vulkan(img);
+      return PURRR_INTERNAL_ERROR;
+    }
   }
 
   Purrr_Result result = PURRR_SUCCESS;
@@ -190,7 +208,7 @@ Purrr_Result _purrr_create_image_vulkan(_Purrr_Context_Vulkan *context, Purrr_Im
 Purrr_Result _purrr_destroy_image_vulkan(_Purrr_Image_Vulkan *image) {
   if (!image) return PURRR_INVALID_ARGS_ERROR;
 
-  if (image->image) vkDestroyImage(image->context->device, image->image, VK_NULL_HANDLE);
+  if (image->image && image->ownsImage) vkDestroyImage(image->context->device, image->image, VK_NULL_HANDLE);
   if (image->memory) vkFreeMemory(image->context->device, image->memory, VK_NULL_HANDLE);
   if (image->view) vkDestroyImageView(image->context->device, image->view, VK_NULL_HANDLE);
   if (image->descriptorSet) vkFreeDescriptorSets(image->context->device, image->context->descriptorPool, 1, &image->descriptorSet);

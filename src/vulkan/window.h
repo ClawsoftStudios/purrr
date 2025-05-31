@@ -19,10 +19,12 @@ struct _Purrr_Window_Vulkan {
   VkFormat format;
   VkFormat depthFormat;
 
-  uint32_t imageCount;
-  VkImage *images;
-  VkImageView *imageViews;
+  Purrr_Image_Usage_Flags imageUsage;
 
+  uint32_t imageCount;
+  Purrr_Sampler sampler;
+
+  _Purrr_Image_Vulkan **images;
   _Purrr_Image_Vulkan **depthImages;
 
   VkRenderPass renderPass;
@@ -35,6 +37,8 @@ Purrr_Result _purrr_create_window_surface(_Purrr_Context_Vulkan *context, void *
 
 Purrr_Result _purrr_create_window_vulkan(_Purrr_Renderer_Vulkan *renderer, Purrr_Window_Create_Info createInfo, void *platform, _Purrr_Window_Vulkan *window, Purrr_Window realWindow);
 Purrr_Result _purrr_destroy_window_vulkan(_Purrr_Window_Vulkan *window);
+
+Purrr_Result _purrr_get_window_image_vulkan(_Purrr_Window_Vulkan *window, _Purrr_Image_Vulkan **image);
 
 
 

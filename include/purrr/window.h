@@ -10,6 +10,9 @@ typedef struct Purrr_Window_Create_Info {
   int width;
   int height;
   bool depth;
+
+  Purrr_Image_Usage_Flags imageUsage;
+  Purrr_Sampler sampler;
 } Purrr_Window_Create_Info;
 
 typedef enum Purrr_Key { // inspired by https://www.glfw.org/docs/3.3/group__keys.html
@@ -158,6 +161,8 @@ typedef void (*Purrr_Window_Key_Callback)(Purrr_Window, int16_t, Purrr_Key, Purr
 
 Purrr_Result purrr_create_window(Purrr_Renderer renderer, Purrr_Window_Create_Info createInfo, Purrr_Window *window);
 Purrr_Result purrr_destroy_window(Purrr_Window window);
+
+Purrr_Result purrr_get_window_image(Purrr_Window window, Purrr_Image *image);
 
 Purrr_Result purrr_should_window_close(Purrr_Window window);
 Purrr_Result purrr_get_window_size(Purrr_Window window, int *width, int *height);

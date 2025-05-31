@@ -115,6 +115,14 @@ Purrr_Result purrr_is_window_key_up(Purrr_Window window, Purrr_Key key) {
   return !_purrr_get_window_key(window, key);
 }
 
+Purrr_Result purrr_get_window_image(Purrr_Window window, Purrr_Image *image) {
+  switch (_purrr_get_header(window).backend) {
+  case PURRR_VULKAN: return _purrr_get_window_image_vulkan((_Purrr_Window_Vulkan*)window->backendData, (_Purrr_Image_Vulkan**)image);
+  case COUNT_PURRR_BACKENDS:
+  default: return PURRR_INTERNAL_ERROR;
+  }
+}
+
 void purrr_set_window_key_callback(Purrr_Window window, Purrr_Window_Key_Callback callback) {
   if (window) window->keyCallback = callback;
 }
