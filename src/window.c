@@ -151,6 +151,10 @@ void purrr_set_window_cursor_leave_callback(Purrr_Window window, Purrr_Window_Cu
   if (window) window->callbacks.cursorLeave = callback;
 }
 
+void purrr_set_window_scroll_callback(Purrr_Window window, Purrr_Window_Scroll_Callback callback) {
+  if (window) window->callbacks.scroll = callback;
+}
+
 void purrr_set_window_user_pointer(Purrr_Window window, void *userPointer) {
   if (window) window->userPointer = userPointer;
 }

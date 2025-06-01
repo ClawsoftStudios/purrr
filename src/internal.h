@@ -55,6 +55,7 @@ struct Purrr_Window_T {
     Purrr_Window_Cursor_Move_Callback cursorMove;
     Purrr_Window_Cursor_Enter_Callback cursorEnter;
     Purrr_Window_Cursor_Leave_Callback cursorLeave;
+    Purrr_Window_Scroll_Callback scroll;
   } callbacks;
 
   void *platformData;

@@ -117,6 +117,12 @@ static LRESULT window_procedure(HWND handle, UINT msg, WPARAM wParam, LPARAM lPa
     window->cursorTracked = false;
     if (realWindow->callbacks.cursorLeave) realWindow->callbacks.cursorLeave(realWindow);
   } break;
+  case WM_MOUSEWHEEL: {
+    if (realWindow->callbacks.scroll) realWindow->callbacks.scroll(realWindow, 0.0, (SHORT)HIWORD(wParam) / (double)WHEEL_DELTA);
+  } break;
+  case WM_MOUSEHWHEEL: {
+    if (realWindow->callbacks.scroll) realWindow->callbacks.scroll(realWindow, -((SHORT)HIWORD(wParam) / (double)WHEEL_DELTA), 0.0);
+  } break;
   default: return DefWindowProc(handle, msg, wParam, lParam);
   }
 

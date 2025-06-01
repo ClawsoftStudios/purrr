@@ -161,6 +161,7 @@ typedef void (*Purrr_Window_Key_Callback)(Purrr_Window, int16_t, Purrr_Key, Purr
 typedef void (*Purrr_Window_Cursor_Move_Callback)(Purrr_Window, double, double);
 typedef void (*Purrr_Window_Cursor_Enter_Callback)(Purrr_Window);
 typedef void (*Purrr_Window_Cursor_Leave_Callback)(Purrr_Window);
+typedef void (*Purrr_Window_Scroll_Callback)(Purrr_Window, double, double);
 
 Purrr_Result purrr_create_window(Purrr_Renderer renderer, Purrr_Window_Create_Info createInfo, Purrr_Window *window);
 Purrr_Result purrr_destroy_window(Purrr_Window window);
@@ -180,6 +181,7 @@ void purrr_set_window_key_callback(Purrr_Window window, Purrr_Window_Key_Callbac
 void purrr_set_window_cursor_move_callback(Purrr_Window window, Purrr_Window_Cursor_Move_Callback callback);
 void purrr_set_window_cursor_enter_callback(Purrr_Window window, Purrr_Window_Cursor_Enter_Callback callback);
 void purrr_set_window_cursor_leave_callback(Purrr_Window window, Purrr_Window_Cursor_Leave_Callback callback);
+void purrr_set_window_scroll_callback(Purrr_Window window, Purrr_Window_Scroll_Callback callback);
 
 void purrr_set_window_user_pointer(Purrr_Window window, void *userPointer);
 void *purrr_get_window_user_pointer(Purrr_Window window);
