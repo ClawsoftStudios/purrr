@@ -44,13 +44,25 @@ struct Purrr_Window_T {
 
   uint8_t keys[(COUNT_PURRR_KEYS+7)/8];
 
+  struct {
+    double xpos, ypos;
+  } mouse;
+
   void *userPointer;
 
-  Purrr_Window_Key_Callback keyCallback;
+  struct {
+    Purrr_Window_Key_Callback key;
+    Purrr_Window_Cursor_Move_Callback cursorMove;
+    Purrr_Window_Cursor_Enter_Callback cursorEnter;
+    Purrr_Window_Cursor_Leave_Callback cursorLeave;
+  } callbacks;
 
   void *platformData;
   void *backendData;
 };
+
+void _purrr_set_window_cursor_pos(Purrr_Window window, double xpos, double ypos);
+void _purrr_get_window_cursor_pos(Purrr_Window window, double *xpos, double *ypos);
 
 void _purrr_set_window_key(Purrr_Window window, int16_t scancode, Purrr_Key key, bool down, Purrr_Key_Modifiers modifiers);
 bool _purrr_get_window_key(Purrr_Window window, Purrr_Key key);

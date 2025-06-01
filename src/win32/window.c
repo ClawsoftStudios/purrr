@@ -5,6 +5,8 @@
 
 #include "../vulkan/window.h"
 
+#include <windowsx.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -92,6 +94,28 @@ static LRESULT window_procedure(HWND handle, UINT msg, WPARAM wParam, LPARAM lPa
     } else if (wParam != VK_SNAPSHOT) _purrr_set_window_key(realWindow, scancode, key, !up, modifiers);
 
     else return DefWindowProc(handle, msg, wParam, lParam);
+  } break;
+  case WM_MOUSEMOVE: {
+    const int xpos = GET_X_LPARAM(lParam);
+    const int ypos = GET_Y_LPARAM(lParam);
+
+    if (!window->cursorTracked) {
+      TRACKMOUSEEVENT tme = {
+        .cbSize = sizeof(tme),
+        .dwFlags = TME_LEAVE,
+        .hwndTrack = window->handle
+      };
+      TrackMouseEvent(&tme);
+
+      window->cursorTracked = true;
+      if (realWindow->callbacks.cursorEnter) realWindow->callbacks.cursorEnter(realWindow);
+    }
+
+    if (realWindow->callbacks.cursorMove) realWindow->callbacks.cursorMove(realWindow, (double)xpos, (double)ypos);
+  } break;
+  case WM_MOUSELEAVE: {
+    window->cursorTracked = false;
+    if (realWindow->callbacks.cursorLeave) realWindow->callbacks.cursorLeave(realWindow);
   } break;
   default: return DefWindowProc(handle, msg, wParam, lParam);
   }
@@ -198,6 +222,34 @@ void purrr_poll_windows() {
 void purrr_wait_windows() {
   WaitMessage();
   purrr_poll_windows();
+}
+
+
+
+void _purrr_set_window_cursor_pos(Purrr_Window window, double xpos, double ypos) {
+  if (!window) return;
+
+  POINT point = {
+    .x = (LONG)xpos,
+    .y = (LONG)ypos
+  };
+
+  window->mouse.xpos = xpos;
+  window->mouse.ypos = ypos;
+
+  ClientToScreen(((_Purrr_Window_Win32*)window->platformData)->handle, &point);
+  SetCursorPos(point.x, point.y);
+}
+
+void _purrr_get_window_cursor_pos(Purrr_Window window, double *xpos, double *ypos) {
+  if (!window) return;
+
+  POINT point = {0};
+  if (!GetCursorPos(&point)) return;
+  ScreenToClient(((_Purrr_Window_Win32*)window->platformData)->handle, &point);
+
+  if (xpos) *xpos = (double)point.x;
+  if (ypos) *ypos = (double)point.y;
 }
 
 

@@ -115,6 +115,18 @@ Purrr_Result purrr_is_window_key_up(Purrr_Window window, Purrr_Key key) {
   return !_purrr_get_window_key(window, key);
 }
 
+Purrr_Result purrr_get_window_cursor_pos(Purrr_Window window, double *xpos, double *ypos) {
+  if (!window) return PURRR_INVALID_ARGS_ERROR;
+  _purrr_get_window_cursor_pos(window, xpos, ypos);
+  return PURRR_SUCCESS;
+}
+
+Purrr_Result purrr_set_window_cursor_pos(Purrr_Window window, double xpos, double ypos) {
+  if (!window) return PURRR_INVALID_ARGS_ERROR;
+  _purrr_set_window_cursor_pos(window, xpos, ypos);
+  return PURRR_SUCCESS;
+}
+
 Purrr_Result purrr_get_window_image(Purrr_Window window, Purrr_Image *image) {
   switch (_purrr_get_header(window).backend) {
   case PURRR_VULKAN: return _purrr_get_window_image_vulkan((_Purrr_Window_Vulkan*)window->backendData, (_Purrr_Image_Vulkan**)image);
@@ -124,7 +136,19 @@ Purrr_Result purrr_get_window_image(Purrr_Window window, Purrr_Image *image) {
 }
 
 void purrr_set_window_key_callback(Purrr_Window window, Purrr_Window_Key_Callback callback) {
-  if (window) window->keyCallback = callback;
+  if (window) window->callbacks.key = callback;
+}
+
+void purrr_set_window_cursor_move_callback(Purrr_Window window, Purrr_Window_Cursor_Move_Callback callback) {
+  if (window) window->callbacks.cursorMove = callback;
+}
+
+void purrr_set_window_cursor_enter_callback(Purrr_Window window, Purrr_Window_Cursor_Enter_Callback callback) {
+  if (window) window->callbacks.cursorEnter = callback;
+}
+
+void purrr_set_window_cursor_leave_callback(Purrr_Window window, Purrr_Window_Cursor_Leave_Callback callback) {
+  if (window) window->callbacks.cursorLeave = callback;
 }
 
 void purrr_set_window_user_pointer(Purrr_Window window, void *userPointer) {
@@ -149,7 +173,7 @@ void _purrr_set_window_key(Purrr_Window window, int16_t scancode, Purrr_Key key,
     else window->keys[key/8] |= 1<<(key%8);
   }
 
-  if (window->keyCallback) window->keyCallback(window, scancode, key, action, modifiers);
+  if (window->callbacks.key) window->callbacks.key(window, scancode, key, action, modifiers);
 }
 
 bool _purrr_get_window_key(Purrr_Window window, Purrr_Key key) {
