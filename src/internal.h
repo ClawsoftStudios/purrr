@@ -43,6 +43,7 @@ struct Purrr_Window_T {
   int width, height;
 
   uint8_t keys[(COUNT_PURRR_KEYS+7)/8];
+  uint8_t mouseButtons[(COUNT_PURRR_MOUSE_BUTTONS+7)/8];
 
   struct {
     double xpos, ypos;
@@ -56,6 +57,7 @@ struct Purrr_Window_T {
     Purrr_Window_Cursor_Enter_Callback cursorEnter;
     Purrr_Window_Cursor_Leave_Callback cursorLeave;
     Purrr_Window_Scroll_Callback scroll;
+    Purrr_Window_Mouse_Button_Callback mouseButton;
   } callbacks;
 
   void *platformData;
@@ -64,6 +66,9 @@ struct Purrr_Window_T {
 
 void _purrr_set_window_cursor_pos(Purrr_Window window, double xpos, double ypos);
 void _purrr_get_window_cursor_pos(Purrr_Window window, double *xpos, double *ypos);
+
+void _purrr_set_window_mouse_button(Purrr_Window window, Purrr_Mouse_Button button, bool down, Purrr_Key_Modifiers modifiers);
+bool _purrr_get_window_mouse_button(Purrr_Window window, Purrr_Mouse_Button button);
 
 void _purrr_set_window_key(Purrr_Window window, int16_t scancode, Purrr_Key key, bool down, Purrr_Key_Modifiers modifiers);
 bool _purrr_get_window_key(Purrr_Window window, Purrr_Key key);

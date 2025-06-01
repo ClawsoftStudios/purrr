@@ -151,16 +151,16 @@ private:
   uint8_t mBitset = 0;
 };
 
-enum class KeyAction {
-  Release = PURRR_KEY_ACTION_RELEASE,
-  Press = PURRR_KEY_ACTION_PRESS,
-  Repeat = PURRR_KEY_ACTION_REPEAT
+enum class Action {
+  Release = PURRR_ACTION_RELEASE,
+  Press = PURRR_ACTION_PRESS,
+  Repeat = PURRR_ACTION_REPEAT
 };
 
 class Window : public Wrapper<Purrr_Window> {
   friend class Renderer;
 public:
-  using KeyCallback = void (*)(const Window &, int16_t, Key, KeyAction, KeyModifiers);
+  using KeyCallback = void (*)(const Window &, int16_t, Key, Action, KeyModifiers);
 
   struct CreateInfo {
     const char *title;

@@ -149,19 +149,30 @@ typedef enum Purrr_Key_Modifier {
 
 typedef uint8_t Purrr_Key_Modifiers;
 
-typedef enum Purrr_Key_Action {
-  PURRR_KEY_ACTION_RELEASE = 0,
-  PURRR_KEY_ACTION_PRESS,
-  PURRR_KEY_ACTION_REPEAT,
+typedef enum Purrr_Action {
+  PURRR_ACTION_RELEASE = 0,
+  PURRR_ACTION_PRESS,
+  PURRR_ACTION_REPEAT,
 
-  COUNT_PURRR_KEY_ACTIONS
-} Purrr_Key_Action;
+  COUNT_PURRR_ACTIONS
+} Purrr_Action;
 
-typedef void (*Purrr_Window_Key_Callback)(Purrr_Window, int16_t, Purrr_Key, Purrr_Key_Action, Purrr_Key_Modifiers);
+typedef enum Purrr_Mouse_Button {
+  PURRR_MOUSE_BUTTON_LEFT = 0,
+  PURRR_MOUSE_BUTTON_MIDDLE,
+  PURRR_MOUSE_BUTTON_RIGHT,
+  PURRR_MOUSE_BUTTON_4,
+  PURRR_MOUSE_BUTTON_5,
+
+  COUNT_PURRR_MOUSE_BUTTONS
+} Purrr_Mouse_Button;
+
+typedef void (*Purrr_Window_Key_Callback)(Purrr_Window, int16_t, Purrr_Key, Purrr_Action, Purrr_Key_Modifiers);
 typedef void (*Purrr_Window_Cursor_Move_Callback)(Purrr_Window, double, double);
 typedef void (*Purrr_Window_Cursor_Enter_Callback)(Purrr_Window);
 typedef void (*Purrr_Window_Cursor_Leave_Callback)(Purrr_Window);
 typedef void (*Purrr_Window_Scroll_Callback)(Purrr_Window, double, double);
+typedef void (*Purrr_Window_Mouse_Button_Callback)(Purrr_Window, Purrr_Mouse_Button, Purrr_Action, Purrr_Key_Modifiers);
 
 Purrr_Result purrr_create_window(Purrr_Renderer renderer, Purrr_Window_Create_Info createInfo, Purrr_Window *window);
 Purrr_Result purrr_destroy_window(Purrr_Window window);
@@ -174,6 +185,9 @@ Purrr_Result purrr_get_window_size(Purrr_Window window, int *width, int *height)
 Purrr_Result purrr_is_window_key_down(Purrr_Window window, Purrr_Key key);
 Purrr_Result purrr_is_window_key_up(Purrr_Window window, Purrr_Key key);
 
+Purrr_Result purrr_is_window_mouse_button_down(Purrr_Window window, Purrr_Mouse_Button button);
+Purrr_Result purrr_is_window_mouse_button_up(Purrr_Window window, Purrr_Mouse_Button button);
+
 Purrr_Result purrr_get_window_cursor_pos(Purrr_Window window, double *xpos, double *ypos);
 Purrr_Result purrr_set_window_cursor_pos(Purrr_Window window, double xpos, double ypos);
 
@@ -182,6 +196,7 @@ void purrr_set_window_cursor_move_callback(Purrr_Window window, Purrr_Window_Cur
 void purrr_set_window_cursor_enter_callback(Purrr_Window window, Purrr_Window_Cursor_Enter_Callback callback);
 void purrr_set_window_cursor_leave_callback(Purrr_Window window, Purrr_Window_Cursor_Leave_Callback callback);
 void purrr_set_window_scroll_callback(Purrr_Window window, Purrr_Window_Scroll_Callback callback);
+void purrr_set_window_mouse_button_callback(Purrr_Window window, Purrr_Window_Mouse_Button_Callback callback);
 
 void purrr_set_window_user_pointer(Purrr_Window window, void *userPointer);
 void *purrr_get_window_user_pointer(Purrr_Window window);

@@ -123,6 +123,39 @@ static LRESULT window_procedure(HWND handle, UINT msg, WPARAM wParam, LPARAM lPa
   case WM_MOUSEHWHEEL: {
     if (realWindow->callbacks.scroll) realWindow->callbacks.scroll(realWindow, -((SHORT)HIWORD(wParam) / (double)WHEEL_DELTA), 0.0);
   } break;
+  case WM_LBUTTONDOWN:
+  case WM_RBUTTONDOWN:
+  case WM_MBUTTONDOWN:
+  case WM_XBUTTONDOWN:
+  case WM_LBUTTONUP:
+  case WM_RBUTTONUP:
+  case WM_MBUTTONUP:
+  case WM_XBUTTONUP: {
+    Purrr_Mouse_Button button = PURRR_MOUSE_BUTTON_5;
+    Purrr_Action action = PURRR_ACTION_PRESS;
+
+         if (msg == WM_LBUTTONDOWN || msg == WM_LBUTTONUP) button = PURRR_MOUSE_BUTTON_LEFT;
+    else if (msg == WM_RBUTTONDOWN || msg == WM_RBUTTONUP) button = PURRR_MOUSE_BUTTON_RIGHT;
+    else if (msg == WM_MBUTTONDOWN || msg == WM_MBUTTONUP) button = PURRR_MOUSE_BUTTON_MIDDLE;
+    else if (GET_XBUTTON_WPARAM(wParam) == XBUTTON1) button = PURRR_MOUSE_BUTTON_4;
+
+    if (msg == WM_LBUTTONUP || msg == WM_RBUTTONUP ||
+        msg == WM_MBUTTONUP || msg == WM_XBUTTONUP)
+      action = PURRR_ACTION_RELEASE;
+
+    Purrr_Mouse_Button i;
+    for (i = 0;  i < COUNT_PURRR_MOUSE_BUTTONS; ++i)
+      if (_purrr_get_window_mouse_button(realWindow, i)) break;
+    if (i > COUNT_PURRR_MOUSE_BUTTONS) SetCapture(window->handle);
+
+    _purrr_set_window_mouse_button(realWindow, button, action, get_modifiers());
+
+    for (i = 0;  i < COUNT_PURRR_MOUSE_BUTTONS; ++i)
+      if (_purrr_get_window_mouse_button(realWindow, i)) break;
+    if (i > COUNT_PURRR_MOUSE_BUTTONS) ReleaseCapture();
+
+    if (msg == WM_XBUTTONDOWN || msg == WM_XBUTTONUP) return TRUE;
+  } break;
   default: return DefWindowProc(handle, msg, wParam, lParam);
   }
 

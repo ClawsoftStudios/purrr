@@ -115,6 +115,16 @@ Purrr_Result purrr_is_window_key_up(Purrr_Window window, Purrr_Key key) {
   return !_purrr_get_window_key(window, key);
 }
 
+Purrr_Result purrr_is_window_mouse_button_down(Purrr_Window window, Purrr_Mouse_Button button) {
+  if (!window || button >= COUNT_PURRR_MOUSE_BUTTONS) return PURRR_INVALID_ARGS_ERROR;
+  return _purrr_get_window_mouse_button(window, button);
+}
+
+Purrr_Result purrr_is_window_mouse_button_up(Purrr_Window window, Purrr_Mouse_Button button) {
+  if (!window || button >= COUNT_PURRR_MOUSE_BUTTONS) return PURRR_INVALID_ARGS_ERROR;
+  return !_purrr_get_window_mouse_button(window, button);
+}
+
 Purrr_Result purrr_get_window_cursor_pos(Purrr_Window window, double *xpos, double *ypos) {
   if (!window) return PURRR_INVALID_ARGS_ERROR;
   _purrr_get_window_cursor_pos(window, xpos, ypos);
@@ -155,6 +165,10 @@ void purrr_set_window_scroll_callback(Purrr_Window window, Purrr_Window_Scroll_C
   if (window) window->callbacks.scroll = callback;
 }
 
+void purrr_set_window_mouse_button_callback(Purrr_Window window, Purrr_Window_Mouse_Button_Callback callback) {
+  if (window) window->callbacks.mouseButton = callback;
+}
+
 void purrr_set_window_user_pointer(Purrr_Window window, void *userPointer) {
   if (window) window->userPointer = userPointer;
 }
@@ -165,15 +179,32 @@ void *purrr_get_window_user_pointer(Purrr_Window window) {
 
 
 
+void _purrr_set_window_mouse_button(Purrr_Window window, Purrr_Mouse_Button button, bool down, Purrr_Key_Modifiers modifiers) {
+  if (!window) return;
+
+  Purrr_Action action = (Purrr_Action)down;
+  if (button >= 0 && button < COUNT_PURRR_MOUSE_BUTTONS) {
+    if (action == PURRR_ACTION_RELEASE) window->mouseButtons[button/8] &= ~(1<<(button%8));
+    else window->mouseButtons[button/8] |= 1<<(button%8);
+  }
+
+  if (window->callbacks.mouseButton) window->callbacks.mouseButton(window, button, action, modifiers);
+}
+
+bool _purrr_get_window_mouse_button(Purrr_Window window, Purrr_Mouse_Button button) {
+  if (!window) return false;
+  return (window->mouseButtons[button/8] & 1<<(button%8))?true:false;
+}
+
 void _purrr_set_window_key(Purrr_Window window, int16_t scancode, Purrr_Key key, bool down, Purrr_Key_Modifiers modifiers) {
   if (!window) return;
 
-  Purrr_Key_Action action = (Purrr_Key_Action)down;
+  Purrr_Action action = (Purrr_Action)down;
   if (key >= 0 && key < COUNT_PURRR_KEYS) {
-    if (action == PURRR_KEY_ACTION_RELEASE && !_purrr_get_window_key(window, key)) return;
-    if (action == PURRR_KEY_ACTION_PRESS && _purrr_get_window_key(window, key)) action = PURRR_KEY_ACTION_REPEAT;
+    if (action == PURRR_ACTION_RELEASE && !_purrr_get_window_key(window, key)) return;
+    if (action == PURRR_ACTION_PRESS && _purrr_get_window_key(window, key)) action = PURRR_ACTION_REPEAT;
 
-    if (action == PURRR_KEY_ACTION_RELEASE) window->keys[key/8] &= ~(1<<(key%8));
+    if (action == PURRR_ACTION_RELEASE) window->keys[key/8] &= ~(1<<(key%8));
     else window->keys[key/8] |= 1<<(key%8);
   }
 
