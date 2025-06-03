@@ -157,10 +157,23 @@ enum class Action {
   Repeat = PURRR_ACTION_REPEAT
 };
 
+enum class MouseButton {
+  Left,
+  Middle,
+  Right,
+  N4,
+  N5
+};
+
 class Window : public Wrapper<Purrr_Window> {
   friend class Renderer;
 public:
   using KeyCallback = void (*)(const Window &, int16_t, Key, Action, KeyModifiers);
+  using CursorMoveCallback = void (*)(const Window &, double, double);
+  using CursorEnterCallback = void (*)(const Window &);
+  using CursorLeaveCallback = void (*)(const Window &);
+  using ScrollCallback = void (*)(const Window &, double, double);
+  using MouseButtonCallback = void (*)(const Window &, MouseButton, Action, KeyModifiers);
 
   struct CreateInfo {
     const char *title;
@@ -185,10 +198,21 @@ public:
     : Wrapper<Purrr_Window>(window)
   {}
 
-  inline void setUserPointer(void *userPointer) { purrr_set_window_user_pointer(mHandle, userPointer); }
-  inline void *getUserPointer() const { return purrr_get_window_user_pointer(mHandle); }
+  inline Image getImage() const {
+    Purrr_Image purrrImage = PURRR_NULL_HANDLE;
+    Result result = purrr_get_window_image(mHandle, &purrrImage);
+    if (!result) throw ResultException(result);
+    return Image(purrrImage);
+  }
 
-  inline void setKeyCallback(KeyCallback cb) { purrr_set_window_key_callback(mHandle, (Purrr_Window_Key_Callback)cb); }
+  inline bool shouldClose() const {
+    return purrr_should_window_close(mHandle);
+  }
+
+  inline void getSize(int &width, int &height) const {
+    Result result = purrr_get_window_size(mHandle, &width, &height);
+    if (!result) throw ResultException(result);
+  }
 
   inline bool isKeyDown(Key key) const {
     Result result = purrr_is_window_key_down(mHandle, (Purrr_Key)key);
@@ -202,9 +226,37 @@ public:
     return result == Result::True;
   }
 
-  inline bool shouldClose() const {
-    return purrr_should_window_close(mHandle);
+  inline bool isMouseButtonDown(MouseButton button) const {
+    Result result = purrr_is_window_mouse_button_down(mHandle, (Purrr_Mouse_Button)button);
+    if (!result) throw ResultException(result);
+    return result == Result::True;
   }
+
+  inline bool isMouseButtonUp(MouseButton button) const {
+    Result result = purrr_is_window_mouse_button_up(mHandle, (Purrr_Mouse_Button)button);
+    if (!result) throw ResultException(result);
+    return result == Result::True;
+  }
+
+  inline void getCursorPos(double &xpos, double &ypos) {
+    Result result = purrr_get_window_cursor_pos(mHandle, &xpos, &ypos);
+    if (!result) throw ResultException(result);
+  }
+
+  inline void setCursorPos(double xpos, double ypos) {
+    Result result = purrr_set_window_cursor_pos(mHandle, xpos, ypos);
+    if (!result) throw ResultException(result);
+  }
+
+  inline void setKey_callback(KeyCallback cb)                  { purrr_set_window_key_callback(mHandle, (Purrr_Window_Key_Callback)cb); }
+  inline void setCursor_move_callback(CursorMoveCallback cb)   { purrr_set_window_cursor_move_callback(mHandle, (Purrr_Window_Cursor_Move_Callback)cb); }
+  inline void setCursor_enter_callback(CursorEnterCallback cb) { purrr_set_window_cursor_enter_callback(mHandle, (Purrr_Window_Cursor_Enter_Callback)cb); }
+  inline void setCursor_leave_callback(CursorLeaveCallback cb) { purrr_set_window_cursor_leave_callback(mHandle, (Purrr_Window_Cursor_Leave_Callback)cb); }
+  inline void setScroll_callback(ScrollCallback cb)            { purrr_set_window_scroll_callback(mHandle, (Purrr_Window_Scroll_Callback)cb); }
+  inline void setMouse_button_callback(MouseButtonCallback cb) { purrr_set_window_mouse_button_callback(mHandle, (Purrr_Window_Mouse_Button_Callback)cb); }
+
+  inline void setUserPointer(void *userPointer) { purrr_set_window_user_pointer(mHandle, userPointer); }
+  inline void *getUserPointer() const { return purrr_get_window_user_pointer(mHandle); }
 
   inline Program createProgram(const Program::CreateInfo &createInfo) {
     return Program((Purrr_Handle)((Purrr_Window)mHandle), createInfo);
@@ -213,9 +265,10 @@ public:
   Window(Window &&other) = default;
   Window &operator=(Window &&other) = default;
 public:
+  inline static double getTime() { return purrr_get_windows_time(); }
   inline static void poll() { purrr_poll_windows(); }
   inline static void wait() { purrr_wait_windows(); }
-private:
+public:
   virtual void destroy() override {
     purrr_destroy_window(mHandle);
   }

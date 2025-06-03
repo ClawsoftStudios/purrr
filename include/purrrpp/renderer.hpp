@@ -92,7 +92,7 @@ public:
     Window window(mHandle, createInfo);
     return std::move(window);
   }
-private:
+public:
   virtual void destroy() override {
     purrr_destroy_renderer(mHandle);
   }

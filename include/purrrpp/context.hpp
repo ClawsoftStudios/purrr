@@ -67,7 +67,7 @@ public:
     Renderer renderer(mHandle, createInfo);
     return std::move(renderer);
   }
-private:
+public:
   virtual void destroy() override {
     purrr_destroy_context(mHandle);
   }

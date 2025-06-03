@@ -40,12 +40,12 @@ public:
     return *this;
   }
 
+  virtual void destroy() {}
+
   inline operator bool() { return mHandle != PURRR_NULL_HANDLE; }
 
   inline operator T() { return mHandle; }
   inline operator const T() const { return mHandle; }
-private:
-  virtual void destroy() {}
 protected:
   T mHandle = PURRR_NULL_HANDLE;
 };

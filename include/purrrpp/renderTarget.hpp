@@ -55,7 +55,7 @@ public:
 
     return std::move(Image(image));
   }
-private:
+public:
   virtual void destroy() override {
     purrr_destroy_render_target(mHandle);
   }

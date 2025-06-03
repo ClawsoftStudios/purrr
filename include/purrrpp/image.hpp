@@ -39,7 +39,7 @@ public:
   inline Image(Purrr_Image image)
     : Wrapper<Purrr_Image>(image)
   {}
-private:
+public:
   virtual void destroy() override {
     purrr_destroy_image(mHandle);
   }

@@ -45,6 +45,18 @@ public:
     Always = PURRR_PROGRAM_DEPTH_COMPARE_ALWAYS
   };
 
+  enum class CullMode {
+    None = PURRR_PROGRAM_CULL_NONE,
+    Front = PURRR_PROGRAM_CULL_FRONT_BIT,
+    Back = PURRR_PROGRAM_CULL_BACK_BIT,
+    FrontAndBack = PURRR_PROGRAM_CULL_FRONT_AND_BACK
+  };
+
+  enum class FrontFace {
+    CounterClockwise = PURRR_PROGRAM_FRONT_FACE_COUNTER_CLOCKWISE,
+    Clockwise = PURRR_PROGRAM_FRONT_FACE_CLOCKWISE
+  };
+
   struct CreateInfo {
     uint32_t shaderCount;
     const ShaderInfo *shaders;
@@ -54,6 +66,8 @@ public:
     const Binding *bindings;
     bool enableDepth;
     DepthCompareOp compareOp;
+    CullMode cullMode;
+    FrontFace frontFace;
   };
 private:
   inline Program(Purrr_Handle renderTarget, const CreateInfo &createInfo)
@@ -103,7 +117,9 @@ private:
       createInfo.bindingCount,
       bindings,
       createInfo.enableDepth,
-      (Purrr_Program_Depth_Compare_Op)createInfo.compareOp
+      (Purrr_Program_Depth_Compare_Op)createInfo.compareOp,
+      (Purrr_Program_Cull_Mode)createInfo.cullMode,
+      (Purrr_Program_Front_Face)createInfo.frontFace
     }, &mHandle);
 
     delete[] shaders;
@@ -121,7 +137,7 @@ public:
   inline Program(Purrr_Program program)
     : Wrapper<Purrr_Program>(program)
   {}
-private:
+public:
   virtual void destroy() override {
     purrr_destroy_program(mHandle);
   }

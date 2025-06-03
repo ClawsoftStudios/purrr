@@ -64,7 +64,7 @@ public:
   inline Sampler(Purrr_Sampler sampler)
     : Wrapper<Purrr_Sampler>(sampler)
   {}
-private:
+public:
   virtual void destroy() override {
     purrr_destroy_sampler(mHandle);
   }

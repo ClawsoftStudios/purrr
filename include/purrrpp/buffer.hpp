@@ -36,7 +36,7 @@ public:
     Result result = purrr_copy_buffer_data(mHandle, data, size, offset);
     if (!result) throw ResultException(result);
   }
-private:
+public:
   virtual void destroy() override {
     purrr_destroy_buffer(mHandle);
   }
