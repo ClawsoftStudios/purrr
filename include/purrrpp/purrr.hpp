@@ -63,4 +63,8 @@ protected:
 #include "renderer.hpp"
 #include "context.hpp"
 
+#ifdef    PURRRPP_ENABLE_BUILDERS
+#include "programBuilder.hpp"
+#endif // PURRRPP_ENABLE_BUILDERS
+
 #endif // _PURRR_HPP_
