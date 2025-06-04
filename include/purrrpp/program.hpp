@@ -23,10 +23,16 @@ public:
     uint32_t offset;
   };
 
+  enum class VertexInputRate {
+    Vertex = PURRR_PROGRAM_VERTEX_INPUT_RATE_VERTEX,
+    Instance = PURRR_PROGRAM_VERTEX_INPUT_RATE_INSTANCE
+  };
+
   struct VertexBindingInfo {
     uint32_t stride;
     uint32_t attributeCount;
     const VertexAttributeInfo *attributes;
+    VertexInputRate inputRate = VertexInputRate::Vertex;
   };
 
   enum class Binding {
@@ -101,7 +107,8 @@ private:
       vertexBindings[i] = Purrr_Program_Vertex_Binding_Info{
         binding.stride,
         binding.attributeCount,
-        attributes
+        attributes,
+        (Purrr_Program_Vertex_Input_Rate)binding.inputRate
       };
     }
 
