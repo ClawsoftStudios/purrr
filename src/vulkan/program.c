@@ -7,6 +7,7 @@
 #include "window.h"
 
 static VkShaderStageFlagBits shader_type_to_stage(Purrr_Program_Shader_Type type);
+static VkVertexInputRate vulkanize_vertex_input_rate(Purrr_Program_Vertex_Input_Rate rate);
 static Purrr_Result read_file(const char *filepath, char **code, uint32_t *codeLength);
 
 Purrr_Result _purrr_create_program_vulkan(Purrr_Handle renderTarget, Purrr_Program_Create_Info createInfo, _Purrr_Program_Vulkan **program) {
@@ -53,7 +54,7 @@ Purrr_Result _purrr_create_program_vulkan(Purrr_Handle renderTarget, Purrr_Progr
 
     bindings[i].binding = i;
     bindings[i].stride = binding.stride;
-    bindings[i].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+    bindings[i].inputRate = vulkanize_vertex_input_rate(binding.inputRate);
 
     attributes = realloc(attributes, sizeof(*attributes) * (attributeCount + binding.attributeCount));
     if (!attributes) {
@@ -336,6 +337,15 @@ static VkShaderStageFlagBits shader_type_to_stage(Purrr_Program_Shader_Type type
   case PURRR_PROGRAM_SHADER_FRAGMENT: return VK_SHADER_STAGE_FRAGMENT_BIT;
   case COUNT_PURRR_PROGRAM_SHADER_TYPES:
   default: return 0;
+  }
+}
+
+static VkVertexInputRate vulkanize_vertex_input_rate(Purrr_Program_Vertex_Input_Rate rate) {
+  switch (rate) {
+  case PURRR_PROGRAM_VERTEX_INPUT_RATE_VERTEX: return VK_VERTEX_INPUT_RATE_VERTEX;
+  case PURRR_PROGRAM_VERTEX_INPUT_RATE_INSTANCE: return VK_VERTEX_INPUT_RATE_INSTANCE;
+  case COUNT_PURRR_PROGRAM_VERTEX_INPUT_RATES:
+  default: return VK_VERTEX_INPUT_RATE_MAX_ENUM;
   }
 }
 

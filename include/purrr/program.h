@@ -22,10 +22,18 @@ typedef struct Purrr_Program_Vertex_Attribute_Info {
   uint32_t offset;
 } Purrr_Program_Vertex_Attribute_Info;
 
+typedef enum Purrr_Program_Vertex_Input_Rate {
+  PURRR_PROGRAM_VERTEX_INPUT_RATE_VERTEX = 0,
+  PURRR_PROGRAM_VERTEX_INPUT_RATE_INSTANCE,
+
+  COUNT_PURRR_PROGRAM_VERTEX_INPUT_RATES
+} Purrr_Program_Vertex_Input_Rate;
+
 typedef struct Purrr_Program_Vertex_Binding_Info {
   uint32_t stride;
   uint32_t attributeCount;
   const Purrr_Program_Vertex_Attribute_Info *attributes;
+  Purrr_Program_Vertex_Input_Rate inputRate;
 } Purrr_Program_Vertex_Binding_Info;
 
 typedef enum Purrr_Program_Binding_Type {
