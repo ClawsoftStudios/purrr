@@ -324,10 +324,10 @@ Purrr_Result _purrr_renderer_bind_program_vulkan(_Purrr_Renderer_Vulkan *rendere
   return PURRR_SUCCESS;
 }
 
-Purrr_Result _purrr_renderer_draw_indexed_vulkan(_Purrr_Renderer_Vulkan *renderer, uint32_t indexCount) {
+Purrr_Result _purrr_renderer_draw_indexed_vulkan(_Purrr_Renderer_Vulkan *renderer, uint32_t indexCount, uint32_t instanceCount) {
   if (!renderer || !indexCount) return PURRR_INVALID_ARGS_ERROR;
 
-  vkCmdDrawIndexed(renderer->commandBuffer, indexCount, 1, 0, 0, 0);
+  vkCmdDrawIndexed(renderer->commandBuffer, indexCount, instanceCount, 0, 0, 0);
 
   return PURRR_SUCCESS;
 }

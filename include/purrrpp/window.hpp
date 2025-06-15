@@ -248,12 +248,12 @@ public:
     if (!result) throw ResultException(result);
   }
 
-  inline void setKey_callback(KeyCallback cb)                  { purrr_set_window_key_callback(mHandle, (Purrr_Window_Key_Callback)cb); }
-  inline void setCursor_move_callback(CursorMoveCallback cb)   { purrr_set_window_cursor_move_callback(mHandle, (Purrr_Window_Cursor_Move_Callback)cb); }
-  inline void setCursor_enter_callback(CursorEnterCallback cb) { purrr_set_window_cursor_enter_callback(mHandle, (Purrr_Window_Cursor_Enter_Callback)cb); }
-  inline void setCursor_leave_callback(CursorLeaveCallback cb) { purrr_set_window_cursor_leave_callback(mHandle, (Purrr_Window_Cursor_Leave_Callback)cb); }
-  inline void setScroll_callback(ScrollCallback cb)            { purrr_set_window_scroll_callback(mHandle, (Purrr_Window_Scroll_Callback)cb); }
-  inline void setMouse_button_callback(MouseButtonCallback cb) { purrr_set_window_mouse_button_callback(mHandle, (Purrr_Window_Mouse_Button_Callback)cb); }
+  inline void setKeyCallback(KeyCallback cb)                 { purrr_set_window_key_callback(mHandle, (Purrr_Window_Key_Callback)cb); }
+  inline void setCursorMoveCallback(CursorMoveCallback cb)   { purrr_set_window_cursor_move_callback(mHandle, (Purrr_Window_Cursor_Move_Callback)cb); }
+  inline void setCursorEnterCallback(CursorEnterCallback cb) { purrr_set_window_cursor_enter_callback(mHandle, (Purrr_Window_Cursor_Enter_Callback)cb); }
+  inline void setCursorLeaveCallback(CursorLeaveCallback cb) { purrr_set_window_cursor_leave_callback(mHandle, (Purrr_Window_Cursor_Leave_Callback)cb); }
+  inline void setScrollCallback(ScrollCallback cb)           { purrr_set_window_scroll_callback(mHandle, (Purrr_Window_Scroll_Callback)cb); }
+  inline void setMouseButtonCallback(MouseButtonCallback cb) { purrr_set_window_mouse_button_callback(mHandle, (Purrr_Window_Mouse_Button_Callback)cb); }
 
   inline void setUserPointer(void *userPointer) { purrr_set_window_user_pointer(mHandle, userPointer); }
   inline void *getUserPointer() const { return purrr_get_window_user_pointer(mHandle); }

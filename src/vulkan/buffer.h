@@ -13,6 +13,7 @@ typedef struct _Purrr_Buffer_Vulkan {
   uint32_t size;
   VkBuffer buffer;
   VkDeviceMemory memory;
+  bool hostVisible;
 
   VkDescriptorSet descriptorSet;
 } _Purrr_Buffer_Vulkan;

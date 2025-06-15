@@ -78,6 +78,11 @@ public:
     if (!result) throw ResultException(result);
   }
 
+  inline void drawIndexed(uint32_t indexCount, uint32_t instanceCount) {
+    Result result = purrr_renderer_draw_indexed_instanced(mHandle, indexCount, instanceCount);
+    if (!result) throw ResultException(result);
+  }
+
   inline void end() {
     Result result = purrr_renderer_end(mHandle);
     if (!result) throw ResultException(result);

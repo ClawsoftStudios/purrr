@@ -10,7 +10,7 @@ public:
   class VertexBinding {
     friend class ProgramBuilder;
   public:
-    inline VertexBinding(uint32_t stride, Program::VertexInputRate inputRate = Program::VertexInputRate::Instance)
+    inline VertexBinding(uint32_t stride, Program::VertexInputRate inputRate = Program::VertexInputRate::Vertex)
       : mStride(stride), mInputRate(inputRate)
     {}
 
@@ -67,18 +67,18 @@ public:
     return *this;
   }
 
-  inline ProgramBuilder &setCompareOp(Purrr_Program_Depth_Compare_Op compareOp) {
-    mCompareOp = compareOp;
+  inline ProgramBuilder &setCompareOp(Program::DepthCompareOp compareOp) {
+    mCompareOp = (Purrr_Program_Depth_Compare_Op)compareOp;
     return *this;
   }
 
-  inline ProgramBuilder &setCullMode(Purrr_Program_Cull_Mode cullMode) {
-    mCullMode = cullMode;
+  inline ProgramBuilder &setCullMode(Program::CullMode cullMode) {
+    mCullMode = (Purrr_Program_Cull_Mode)cullMode;
     return *this;
   }
 
-  inline ProgramBuilder &setFrontFace(Purrr_Program_Front_Face frontFace) {
-    mFrontFace = frontFace;
+  inline ProgramBuilder &setFrontFace(Program::FrontFace frontFace) {
+    mFrontFace = (Purrr_Program_Front_Face)frontFace;
     return *this;
   }
 

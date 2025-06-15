@@ -135,7 +135,7 @@ static Purrr_Result create_swapchain(VkPhysicalDevice gpu, VkDevice device, VkSu
     if (vkGetPhysicalDeviceSurfacePresentModesKHR(gpu, surface, &presentModeCount, presentModes) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
 
     for (uint32_t i = 0; i < presentModeCount; ++i) {
-      if (presentModes[i] == VK_PRESENT_MODE_MAILBOX_KHR) {}
+      if (presentModes[i] == VK_PRESENT_MODE_MAILBOX_KHR)
         presentMode = presentModes[i];
     }
 

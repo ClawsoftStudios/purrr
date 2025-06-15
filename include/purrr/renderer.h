@@ -29,6 +29,7 @@ Purrr_Result purrr_renderer_bind_buffer(Purrr_Renderer renderer, Purrr_Buffer bu
 Purrr_Result purrr_renderer_bind_image(Purrr_Renderer renderer, Purrr_Image image, uint32_t index);
 Purrr_Result purrr_renderer_bind_program(Purrr_Renderer renderer, Purrr_Program program);
 Purrr_Result purrr_renderer_draw_indexed(Purrr_Renderer renderer, uint32_t indexCount);
+Purrr_Result purrr_renderer_draw_indexed_instanced(Purrr_Renderer renderer, uint32_t indexCount, uint32_t instanceCount);
 Purrr_Result purrr_renderer_end(Purrr_Renderer renderer);
 Purrr_Result purrr_render_renderer(Purrr_Renderer renderer);
 

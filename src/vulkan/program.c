@@ -66,12 +66,14 @@ Purrr_Result _purrr_create_program_vulkan(Purrr_Handle renderTarget, Purrr_Progr
     for (uint32_t j = 0; j < binding.attributeCount; ++j) {
       Purrr_Program_Vertex_Attribute_Info attribute = binding.attributes[j];
 
-      attributes[attributeCount++] = (VkVertexInputAttributeDescription){
+      attributes[attributeCount] = (VkVertexInputAttributeDescription){
         .binding = i,
-        .location = j,
+        .location = attributeCount,
         .format = _purrr_format_to_vk_format(attribute.format),
         .offset = attribute.offset
       };
+
+      ++attributeCount;
     }
   }
 
@@ -143,12 +145,23 @@ Purrr_Result _purrr_create_program_vulkan(Purrr_Handle renderTarget, Purrr_Progr
     .maxDepthBounds = 1.0f
   };
 
+  // VkPipelineColorBlendAttachmentState colorBlendAttachment = {
+  //   .blendEnable = VK_FALSE,
+  //   .srcColorBlendFactor = VK_BLEND_FACTOR_ZERO,
+  //   .dstColorBlendFactor = VK_BLEND_FACTOR_ZERO,
+  //   .colorBlendOp = VK_BLEND_OP_ADD,
+  //   .srcAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
+  //   .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
+  //   .alphaBlendOp = VK_BLEND_OP_ADD,
+  //   .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT
+  // };
+
   VkPipelineColorBlendAttachmentState colorBlendAttachment = {
-    .blendEnable = VK_FALSE,
-    .srcColorBlendFactor = VK_BLEND_FACTOR_ZERO,
-    .dstColorBlendFactor = VK_BLEND_FACTOR_ZERO,
+    .blendEnable = VK_TRUE,
+    .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
+    .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
     .colorBlendOp = VK_BLEND_OP_ADD,
-    .srcAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
+    .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
     .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
     .alphaBlendOp = VK_BLEND_OP_ADD,
     .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT

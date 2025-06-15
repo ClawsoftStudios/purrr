@@ -1,6 +1,8 @@
 #include "./buffer.h"
 #include "./window.h"
 
+static VkBufferUsageFlags buffer_type_to_buffer_usage_flags(Purrr_Buffer_Type type);
+
 Purrr_Result _purrr_vulkan_create_buffer(_Purrr_Context_Vulkan *context, uint32_t size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer *buffer, VkDeviceMemory *memory) {
   if (!size || !usage || !buffer || !memory) return PURRR_INVALID_ARGS_ERROR;
 
@@ -37,6 +39,8 @@ Purrr_Result _purrr_vulkan_create_buffer(_Purrr_Context_Vulkan *context, uint32_
   return PURRR_SUCCESS;
 }
 
+
+
 Purrr_Result _purrr_create_buffer_vulkan(_Purrr_Context_Vulkan *context, Purrr_Buffer_Create_Info createInfo, _Purrr_Buffer_Vulkan **buffer) {
   if (!context || !buffer || createInfo.type >= COUNT_PURRR_BUFFER_TYPES) return PURRR_INVALID_ARGS_ERROR;
 
@@ -51,23 +55,13 @@ Purrr_Result _purrr_create_buffer_vulkan(_Purrr_Context_Vulkan *context, Purrr_B
   buf->context = context;
   buf->type = createInfo.type;
   buf->size = createInfo.size;
+  buf->hostVisible = createInfo.hostVisible;
+
+  VkBufferUsageFlags usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | buffer_type_to_buffer_usage_flags(createInfo.type);
+  VkMemoryPropertyFlags memoryProperty = buf->hostVisible?(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT|VK_MEMORY_PROPERTY_HOST_COHERENT_BIT):(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
   Purrr_Result result = PURRR_SUCCESS;
-  switch (createInfo.type) {
-  case PURRR_BUFFER_VERTEX: {
-    result = _purrr_vulkan_create_buffer(context, createInfo.size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &buf->buffer, &buf->memory);
-  } break;
-  case PURRR_BUFFER_INDEX: {
-    result = _purrr_vulkan_create_buffer(context, createInfo.size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &buf->buffer, &buf->memory);
-  } break;
-  case PURRR_BUFFER_UNIFORM: {
-    result = _purrr_vulkan_create_buffer(context, createInfo.size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &buf->buffer, &buf->memory);
-  } break;
-  case COUNT_PURRR_BUFFER_TYPES:
-  default: return PURRR_INVALID_ARGS_ERROR;
-  }
-
-  if (result < PURRR_SUCCESS) return result;
+  if ((result = _purrr_vulkan_create_buffer(context, buf->size, usage, memoryProperty, &buf->buffer, &buf->memory)) < PURRR_SUCCESS) return result;
 
   if (createInfo.type == PURRR_BUFFER_UNIFORM) {
     VkDescriptorSetAllocateInfo allocInfo = {
@@ -123,7 +117,7 @@ Purrr_Result _purrr_copy_buffer_data_vulkan(_Purrr_Buffer_Vulkan *dst, void *src
 
   _Purrr_Context_Vulkan *context = dst->context;
 
-  if (dst->type == PURRR_BUFFER_UNIFORM) {
+  if (dst->hostVisible) {
     void *data = NULL;
     if (vkMapMemory(context->device, dst->memory, 0, size, 0, &data) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
     memcpy(data, src, size);
@@ -166,4 +160,16 @@ Purrr_Result _purrr_copy_buffer_vulkan(_Purrr_Buffer_Vulkan *dst, _Purrr_Buffer_
   if (!dst || !src || src->size+offset > dst->size) return PURRR_INVALID_ARGS_ERROR;
 
   return PURRR_SUCCESS;
+}
+
+
+
+VkBufferUsageFlags buffer_type_to_buffer_usage_flags(Purrr_Buffer_Type type) {
+  switch (type) {
+  case PURRR_BUFFER_VERTEX: return VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+  case PURRR_BUFFER_INDEX: return VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+  case PURRR_BUFFER_UNIFORM: return VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+  case COUNT_PURRR_BUFFER_TYPES:
+  default: return 0;
+  }
 }

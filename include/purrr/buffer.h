@@ -14,6 +14,7 @@ typedef enum Purrr_Buffer_Type {
 typedef struct Purrr_Buffer_Create_Info {
   Purrr_Buffer_Type type;
   uint32_t size;
+  bool hostVisible;
 } Purrr_Buffer_Create_Info;
 
 Purrr_Result purrr_create_buffer(Purrr_Context context, Purrr_Buffer_Create_Info createInfo, Purrr_Buffer *buffer);

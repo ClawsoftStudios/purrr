@@ -15,13 +15,15 @@ public:
   struct CreateInfo {
     Type type;
     uint32_t size;
+    bool hostVisible = false;
   };
 private:
   inline Buffer(Purrr_Context context, const CreateInfo &createInfo)
   {
     Result result = purrr_create_buffer(context, Purrr_Buffer_Create_Info{
       (Purrr_Buffer_Type)createInfo.type,
-      createInfo.size
+      createInfo.size,
+      createInfo.hostVisible
     }, &mHandle);
     if (!result) throw ResultException(result);
   }
