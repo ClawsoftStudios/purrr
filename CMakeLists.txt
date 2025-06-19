@@ -8,8 +8,23 @@ set(PURRR_VERSION 0.1.0)
 
 find_package(Vulkan REQUIRED)
 
+option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
+
+set(PURRR_LIBRARY_TYPE "${PURRR_LIBRARY_TYPE}" CACHE STRING
+    "Library type override for PURRR (SHARED, STATIC, OBJECT, or empty to follow BUILD_SHARED_LIBS)")
+
+if(PURRR_LIBRARY_TYPE)
+  if (PURRR_LIBRARY_TYPE STREQUAL "SHARED")
+    set(PURRR_BUILD_SHARED_LIBRARY TRUE)
+  else()
+    set(PURRR_BUILD_SHARED_LIBRARY FALSE)
+  endif()
+else()
+  set(PURRR_BUILD_SHARED_LIBRARY ${BUILD_SHARED_LIBS})
+endif()
+
 file(GLOB_RECURSE PURRR_SOURCES "src/**.c" "src/**.h" "include/**.h*")
-add_library(purrr STATIC ${PURRR_SOURCES})
+add_library(purrr ${PURRR_LIBRARY_TYPE} ${PURRR_SOURCES})
 
 target_include_directories(purrr PUBLIC
                            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
