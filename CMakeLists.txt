@@ -38,6 +38,7 @@ set_property(TARGET purrr PROPERTY CXX_STANDARD 17)
 target_compile_definitions(purrr PRIVATE
   $<$<PLATFORM_ID:Windows>:PURRR_PLATFORM_WINDOWS>
   $<$<PLATFORM_ID:Windows>:VK_USE_PLATFORM_WIN32_KHR>
+  $<$<AND:$<PLATFORM_ID:Windows>,$<BOOL:${PURRR_BUILD_SHARED_LIBRARY}>>:PURRR_BUILD_DLL>
 )
 
 target_compile_options(purrr PRIVATE

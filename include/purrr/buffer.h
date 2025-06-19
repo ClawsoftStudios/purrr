@@ -17,10 +17,10 @@ typedef struct Purrr_Buffer_Create_Info {
   bool hostVisible;
 } Purrr_Buffer_Create_Info;
 
-Purrr_Result purrr_create_buffer(Purrr_Context context, Purrr_Buffer_Create_Info createInfo, Purrr_Buffer *buffer);
-Purrr_Result purrr_destroy_buffer(Purrr_Buffer buffer);
+EXPORT Purrr_Result purrr_create_buffer(Purrr_Context context, Purrr_Buffer_Create_Info createInfo, Purrr_Buffer *buffer);
+EXPORT Purrr_Result purrr_destroy_buffer(Purrr_Buffer buffer);
 
-Purrr_Result purrr_copy_buffer_data(Purrr_Buffer dst, void *src, uint32_t size, uint32_t offset);
-Purrr_Result purrr_copy_buffer(Purrr_Buffer dst, Purrr_Buffer src, uint32_t offset);
+EXPORT Purrr_Result purrr_copy_buffer_data(Purrr_Buffer dst, void *src, uint32_t size, uint32_t offset);
+EXPORT Purrr_Result purrr_copy_buffer(Purrr_Buffer dst, Purrr_Buffer src, uint32_t offset);
 
 #endif // _PURRR_BUFFER_H_

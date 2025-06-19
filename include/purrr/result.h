@@ -1,5 +1,6 @@
 #ifndef   _PURRR_RESULT_H_
 #define   _PURRR_RESULT_H_
+#include "export.h"
 
 // ALWAYS CHANGE purrr::Result after changing this enum
 typedef enum Purrr_Result {
@@ -13,6 +14,6 @@ typedef enum Purrr_Result {
   PURRR_INACTIVE = 3,
 } Purrr_Result;
 
-const char *purrr_result_as_cstr(Purrr_Result result);
+EXPORT const char *purrr_result_as_cstr(Purrr_Result result);
 
 #endif // _PURRR_RESULT_H_

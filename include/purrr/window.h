@@ -174,35 +174,35 @@ typedef void (*Purrr_Window_Cursor_Leave_Callback)(Purrr_Window);
 typedef void (*Purrr_Window_Scroll_Callback)(Purrr_Window, double, double);
 typedef void (*Purrr_Window_Mouse_Button_Callback)(Purrr_Window, Purrr_Mouse_Button, Purrr_Action, Purrr_Key_Modifiers);
 
-Purrr_Result purrr_create_window(Purrr_Renderer renderer, Purrr_Window_Create_Info createInfo, Purrr_Window *window);
-Purrr_Result purrr_destroy_window(Purrr_Window window);
+EXPORT Purrr_Result purrr_create_window(Purrr_Renderer renderer, Purrr_Window_Create_Info createInfo, Purrr_Window *window);
+EXPORT Purrr_Result purrr_destroy_window(Purrr_Window window);
 
-Purrr_Result purrr_get_window_image(Purrr_Window window, Purrr_Image *image);
+EXPORT Purrr_Result purrr_get_window_image(Purrr_Window window, Purrr_Image *image);
 
-Purrr_Result purrr_should_window_close(Purrr_Window window);
-Purrr_Result purrr_get_window_size(Purrr_Window window, int *width, int *height);
+EXPORT Purrr_Result purrr_should_window_close(Purrr_Window window);
+EXPORT Purrr_Result purrr_get_window_size(Purrr_Window window, int *width, int *height);
 
-Purrr_Result purrr_is_window_key_down(Purrr_Window window, Purrr_Key key);
-Purrr_Result purrr_is_window_key_up(Purrr_Window window, Purrr_Key key);
+EXPORT Purrr_Result purrr_is_window_key_down(Purrr_Window window, Purrr_Key key);
+EXPORT Purrr_Result purrr_is_window_key_up(Purrr_Window window, Purrr_Key key);
 
-Purrr_Result purrr_is_window_mouse_button_down(Purrr_Window window, Purrr_Mouse_Button button);
-Purrr_Result purrr_is_window_mouse_button_up(Purrr_Window window, Purrr_Mouse_Button button);
+EXPORT Purrr_Result purrr_is_window_mouse_button_down(Purrr_Window window, Purrr_Mouse_Button button);
+EXPORT Purrr_Result purrr_is_window_mouse_button_up(Purrr_Window window, Purrr_Mouse_Button button);
 
-Purrr_Result purrr_get_window_cursor_pos(Purrr_Window window, double *xpos, double *ypos);
-Purrr_Result purrr_set_window_cursor_pos(Purrr_Window window, double xpos, double ypos);
+EXPORT Purrr_Result purrr_get_window_cursor_pos(Purrr_Window window, double *xpos, double *ypos);
+EXPORT Purrr_Result purrr_set_window_cursor_pos(Purrr_Window window, double xpos, double ypos);
 
-void purrr_set_window_key_callback(Purrr_Window window, Purrr_Window_Key_Callback callback);
-void purrr_set_window_cursor_move_callback(Purrr_Window window, Purrr_Window_Cursor_Move_Callback callback);
-void purrr_set_window_cursor_enter_callback(Purrr_Window window, Purrr_Window_Cursor_Enter_Callback callback);
-void purrr_set_window_cursor_leave_callback(Purrr_Window window, Purrr_Window_Cursor_Leave_Callback callback);
-void purrr_set_window_scroll_callback(Purrr_Window window, Purrr_Window_Scroll_Callback callback);
-void purrr_set_window_mouse_button_callback(Purrr_Window window, Purrr_Window_Mouse_Button_Callback callback);
+EXPORT void purrr_set_window_key_callback(Purrr_Window window, Purrr_Window_Key_Callback callback);
+EXPORT void purrr_set_window_cursor_move_callback(Purrr_Window window, Purrr_Window_Cursor_Move_Callback callback);
+EXPORT void purrr_set_window_cursor_enter_callback(Purrr_Window window, Purrr_Window_Cursor_Enter_Callback callback);
+EXPORT void purrr_set_window_cursor_leave_callback(Purrr_Window window, Purrr_Window_Cursor_Leave_Callback callback);
+EXPORT void purrr_set_window_scroll_callback(Purrr_Window window, Purrr_Window_Scroll_Callback callback);
+EXPORT void purrr_set_window_mouse_button_callback(Purrr_Window window, Purrr_Window_Mouse_Button_Callback callback);
 
-void purrr_set_window_user_pointer(Purrr_Window window, void *userPointer);
-void *purrr_get_window_user_pointer(Purrr_Window window);
+EXPORT void purrr_set_window_user_pointer(Purrr_Window window, void *userPointer);
+EXPORT void *purrr_get_window_user_pointer(Purrr_Window window);
 
-double purrr_get_windows_time();
-void purrr_poll_windows();
-void purrr_wait_windows();
+EXPORT double purrr_get_windows_time();
+EXPORT void purrr_poll_windows();
+EXPORT void purrr_wait_windows();
 
 #endif // _PURRR_WINDOW_H_
