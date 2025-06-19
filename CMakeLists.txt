@@ -18,9 +18,9 @@ set_property(TARGET purrr PROPERTY C_STANDARD 99)
 set_property(TARGET purrr PROPERTY CXX_STANDARD 17)
 
 if(BUILD_SHARED_LIBS)
-    set_property(TARGET purrr PROPERTY C_VISIBILITY_PRESET hidden)
-    set_property(TARGET purrr PROPERTY CXX_VISIBILITY_PRESET hidden)
-    set_property(TARGET purrr PROPERTY VISIBILITY_INLINES_HIDDEN ON)
+  set_property(TARGET purrr PROPERTY C_VISIBILITY_PRESET hidden)
+  set_property(TARGET purrr PROPERTY CXX_VISIBILITY_PRESET hidden)
+  set_property(TARGET purrr PROPERTY VISIBILITY_INLINES_HIDDEN ON)
 endif()
 
 target_compile_definitions(purrr PRIVATE
@@ -29,8 +29,8 @@ target_compile_definitions(purrr PRIVATE
 )
 
 if(BUILD_SHARED_LIBS AND WIN32)
-    target_compile_definitions(purrr PRIVATE PURRR_BUILD_DLL)
-    target_compile_definitions(purrr INTERFACE PURRR_DLL)
+  target_compile_definitions(purrr PRIVATE PURRR_BUILD_DLL)
+  target_compile_definitions(purrr INTERFACE PURRR_DLL)
 endif()
 
 target_compile_options(purrr PRIVATE
