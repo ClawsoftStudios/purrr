@@ -332,6 +332,14 @@ Purrr_Result _purrr_renderer_draw_indexed_vulkan(_Purrr_Renderer_Vulkan *rendere
   return PURRR_SUCCESS;
 }
 
+Purrr_Result _purrr_renderer_draw_indexed_indirect_vulkan(_Purrr_Renderer_Vulkan *renderer, _Purrr_Buffer_Vulkan *buffer, uint32_t drawCount, uint32_t stride) {
+  if (!renderer || !drawCount) return PURRR_INVALID_ARGS_ERROR;
+
+  vkCmdDrawIndexedIndirect(renderer->commandBuffer, buffer->buffer, 0, drawCount, stride);
+
+  return PURRR_SUCCESS;
+}
+
 Purrr_Result _purrr_renderer_end_vulkan(_Purrr_Renderer_Vulkan *renderer) {
   if (!renderer) return PURRR_INVALID_ARGS_ERROR;
 

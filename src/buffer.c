@@ -35,9 +35,9 @@ Purrr_Result purrr_copy_buffer_data(Purrr_Buffer dst, void *src, uint32_t size, 
   }
 }
 
-Purrr_Result purrr_copy_buffer(Purrr_Buffer dst, Purrr_Buffer src, uint32_t offset) {
+Purrr_Result purrr_copy_buffer(Purrr_Buffer dst, Purrr_Buffer src, uint32_t size, uint32_t dstOffset, uint32_t srcOffset) {
   switch (_purrr_get_header(dst).backend) {
-  case PURRR_VULKAN: return _purrr_copy_buffer_vulkan((_Purrr_Buffer_Vulkan*)dst, (_Purrr_Buffer_Vulkan*)src, offset);
+  case PURRR_VULKAN: return _purrr_copy_buffer_vulkan((_Purrr_Buffer_Vulkan*)dst, (_Purrr_Buffer_Vulkan*)src, size, dstOffset, srcOffset);
   case COUNT_PURRR_BACKENDS:
   default: return PURRR_INVALID_ARGS_ERROR;
   }

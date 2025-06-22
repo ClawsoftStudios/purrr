@@ -95,6 +95,14 @@ Purrr_Result purrr_renderer_draw_indexed_instanced(Purrr_Renderer renderer, uint
   }
 }
 
+Purrr_Result purrr_renderer_draw_indexed_indirect(Purrr_Renderer renderer, Purrr_Buffer buffer, uint32_t drawCount, uint32_t stride) {
+  switch (_purrr_get_header(renderer).backend) {
+  case PURRR_VULKAN: return _purrr_renderer_draw_indexed_indirect_vulkan((_Purrr_Renderer_Vulkan*)renderer, (_Purrr_Buffer_Vulkan*)buffer, drawCount, stride);
+  case COUNT_PURRR_BACKENDS:
+  default: return PURRR_INVALID_ARGS_ERROR;
+  }
+}
+
 Purrr_Result purrr_renderer_end(Purrr_Renderer renderer) {
   switch (_purrr_get_header(renderer).backend) {
   case PURRR_VULKAN: return _purrr_renderer_end_vulkan((_Purrr_Renderer_Vulkan*)renderer);

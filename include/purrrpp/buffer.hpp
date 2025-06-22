@@ -9,7 +9,8 @@ public:
   enum class Type {
     Vertex = PURRR_BUFFER_VERTEX,
     Index = PURRR_BUFFER_INDEX,
-    Uniform = PURRR_BUFFER_UNIFORM
+    Uniform = PURRR_BUFFER_UNIFORM,
+    Indirect = PURRR_BUFFER_INDIRECT
   };
 
   struct CreateInfo {
@@ -17,6 +18,8 @@ public:
     uint32_t size;
     bool hostVisible = false;
   };
+
+  using IndirectInfo = Purrr_Buffer_Indirect_Info;
 private:
   inline Buffer(Purrr_Context context, const CreateInfo &createInfo)
   {

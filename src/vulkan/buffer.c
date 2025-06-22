@@ -52,6 +52,8 @@ Purrr_Result _purrr_create_buffer_vulkan(_Purrr_Context_Vulkan *context, Purrr_B
   if (!buf) return PURRR_BUY_MORE_RAM;
   memset(buf, 0, sizeof(*buf));
 
+  if (createInfo.type == PURRR_BUFFER_INDIRECT) createInfo.size *= sizeof(VkDrawIndexedIndirectCommand);
+
   buf->context = context;
   buf->type = createInfo.type;
   buf->size = createInfo.size;
@@ -117,6 +119,25 @@ Purrr_Result _purrr_copy_buffer_data_vulkan(_Purrr_Buffer_Vulkan *dst, void *src
 
   _Purrr_Context_Vulkan *context = dst->context;
 
+  if (dst->type == PURRR_BUFFER_INDIRECT) {
+    Purrr_Buffer_Indirect_Info *indirectInfos = (Purrr_Buffer_Indirect_Info*)src;
+    src = malloc(sizeof(VkDrawIndexedIndirectCommand) * size);
+
+    size *= sizeof(VkDrawIndexedIndirectCommand);
+    offset *= sizeof(VkDrawIndexedIndirectCommand);
+
+    VkDrawIndexedIndirectCommand *src_ = (VkDrawIndexedIndirectCommand*)src;
+    for (uint32_t i = 0; i < size; ++i) {
+      const Purrr_Buffer_Indirect_Info info = indirectInfos[i];
+      src_[i] = (VkDrawIndexedIndirectCommand){
+        .indexCount    = info.indexCount,
+        .instanceCount = info.instanceCount,
+        .firstIndex    = info.firstIndex,
+        .firstInstance = info.firstInstance
+      };
+    }
+  }
+
   if (dst->hostVisible) {
     void *data = NULL;
     if (vkMapMemory(context->device, dst->memory, 0, size, 0, &data) != VK_SUCCESS) return PURRR_INTERNAL_ERROR;
@@ -153,11 +174,15 @@ Purrr_Result _purrr_copy_buffer_data_vulkan(_Purrr_Buffer_Vulkan *dst, void *src
     vkFreeMemory(context->device, stagingMemory, VK_NULL_HANDLE);
   }
 
+  if (dst->type == PURRR_BUFFER_INDIRECT) {
+    free(src);
+  }
+
   return PURRR_SUCCESS;
 }
 
-Purrr_Result _purrr_copy_buffer_vulkan(_Purrr_Buffer_Vulkan *dst, _Purrr_Buffer_Vulkan *src, uint32_t offset) {
-  if (!dst || !src || src->size+offset > dst->size) return PURRR_INVALID_ARGS_ERROR;
+Purrr_Result _purrr_copy_buffer_vulkan(_Purrr_Buffer_Vulkan *dst, _Purrr_Buffer_Vulkan *src, uint32_t size, uint32_t dstOffset, uint32_t srcOffset) {
+  if (!dst || !src || size+srcOffset > src->size || size+dstOffset > dst->size) return PURRR_INVALID_ARGS_ERROR;
 
   return PURRR_SUCCESS;
 }
@@ -169,6 +194,7 @@ VkBufferUsageFlags buffer_type_to_buffer_usage_flags(Purrr_Buffer_Type type) {
   case PURRR_BUFFER_VERTEX: return VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
   case PURRR_BUFFER_INDEX: return VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
   case PURRR_BUFFER_UNIFORM: return VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+  case PURRR_BUFFER_INDIRECT: return VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
   case COUNT_PURRR_BUFFER_TYPES:
   default: return 0;
   }

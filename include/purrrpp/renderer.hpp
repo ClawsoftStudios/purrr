@@ -83,6 +83,11 @@ public:
     if (!result) throw ResultException(result);
   }
 
+  inline void drawIndexedIndirect(const Buffer &buffer, uint32_t drawCount, uint32_t stride) {
+    Result result = purrr_renderer_draw_indexed_indirect(mHandle, buffer, drawCount, stride);
+    if (!result) throw ResultException(result);
+  }
+
   inline void end() {
     Result result = purrr_renderer_end(mHandle);
     if (!result) throw ResultException(result);
