@@ -85,7 +85,7 @@ typedef struct Purrr_Program_Create_Info {
   Purrr_Program_Front_Face frontFace;
 } Purrr_Program_Create_Info;
 
-Purrr_Result purrr_create_program(Purrr_Handle renderTarget, Purrr_Program_Create_Info createInfo, Purrr_Program *program);
-Purrr_Result purrr_destroy_program(Purrr_Program program);
+PURRR_API Purrr_Result purrr_create_program(Purrr_Handle renderTarget, Purrr_Program_Create_Info createInfo, Purrr_Program *program);
+PURRR_API Purrr_Result purrr_destroy_program(Purrr_Program program);
 
 #endif // _PURRR_PROGRAM_H_

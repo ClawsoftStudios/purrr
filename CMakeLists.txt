@@ -35,9 +35,13 @@ target_link_libraries(purrr Vulkan::Vulkan)
 set_property(TARGET purrr PROPERTY C_STANDARD 99)
 set_property(TARGET purrr PROPERTY CXX_STANDARD 17)
 
-target_compile_definitions(purrr PRIVATE
-  $<$<PLATFORM_ID:Windows>:PURRR_PLATFORM_WINDOWS>
-  $<$<PLATFORM_ID:Windows>:VK_USE_PLATFORM_WIN32_KHR>
+target_compile_definitions(purrr
+  PRIVATE
+    $<$<PLATFORM_ID:Windows>:PURRR_PLATFORM_WINDOWS>
+    $<$<PLATFORM_ID:Windows>:VK_USE_PLATFORM_WIN32_KHR>
+    $<$<BOOL:PURRR_BUILD_SHARED_LIBRARY>:PURRR_BUILD_DLL>
+  INTERFACE
+    $<$<BOOL:PURRR_BUILD_SHARED_LIBRARY>:PURRR_DLL>
 )
 
 target_compile_options(purrr PRIVATE

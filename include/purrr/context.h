@@ -20,7 +20,7 @@ typedef struct Purrr_Context_Create_Info {
   Purrr_Version engineVersion;
 } Purrr_Context_Create_Info;
 
-Purrr_Result purrr_create_context(Purrr_Backend backend, Purrr_Context_Create_Info createInfo, Purrr_Context *context);
-Purrr_Result purrr_destroy_context(Purrr_Context context);
+PURRR_API Purrr_Result purrr_create_context(Purrr_Backend backend, Purrr_Context_Create_Info createInfo, Purrr_Context *context);
+PURRR_API Purrr_Result purrr_destroy_context(Purrr_Context context);
 
 #endif // _PURRR_CONTEXT_H_

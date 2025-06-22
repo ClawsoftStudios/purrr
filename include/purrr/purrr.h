@@ -5,6 +5,16 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#if defined(_WIN32) && defined(PURRR_BUILD_DLL)
+  #define PURRR_API __declspec(dllexport)
+#elif defined(_WIN32) && defined(PURRR_DLL)
+  #define PURRR_API __declspec(dllimport)
+#elif defined(PURRR_BUILD_DLL)
+  #define PURRR_API __attribute__((visibility("default")))
+#else
+  #define PURRR_API
+#endif
+
 #ifdef    __cplusplus
 extern "C" {
 #endif // __cplusplus

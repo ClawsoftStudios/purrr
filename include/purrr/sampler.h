@@ -44,7 +44,7 @@ typedef struct Purrr_Sampler_Create_Info {
   Purrr_Sampler_Border_Color borderColor;
 } Purrr_Sampler_Create_Info;
 
-Purrr_Result purrr_create_sampler(Purrr_Context context, Purrr_Sampler_Create_Info createInfo, Purrr_Sampler *sampler);
-Purrr_Result purrr_destroy_sampler(Purrr_Sampler sampler);
+PURRR_API Purrr_Result purrr_create_sampler(Purrr_Context context, Purrr_Sampler_Create_Info createInfo, Purrr_Sampler *sampler);
+PURRR_API Purrr_Result purrr_destroy_sampler(Purrr_Sampler sampler);
 
 #endif // _PURRR_SAMPLER_H_
