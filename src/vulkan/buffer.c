@@ -123,9 +123,6 @@ Purrr_Result _purrr_copy_buffer_data_vulkan(_Purrr_Buffer_Vulkan *dst, void *src
     Purrr_Buffer_Indirect_Info *indirectInfos = (Purrr_Buffer_Indirect_Info*)src;
     src = malloc(sizeof(VkDrawIndexedIndirectCommand) * size);
 
-    size *= sizeof(VkDrawIndexedIndirectCommand);
-    offset *= sizeof(VkDrawIndexedIndirectCommand);
-
     VkDrawIndexedIndirectCommand *src_ = (VkDrawIndexedIndirectCommand*)src;
     for (uint32_t i = 0; i < size; ++i) {
       const Purrr_Buffer_Indirect_Info info = indirectInfos[i];
@@ -136,6 +133,9 @@ Purrr_Result _purrr_copy_buffer_data_vulkan(_Purrr_Buffer_Vulkan *dst, void *src
         .firstInstance = info.firstInstance
       };
     }
+
+    size *= sizeof(VkDrawIndexedIndirectCommand);
+    offset *= sizeof(VkDrawIndexedIndirectCommand);
   }
 
   if (dst->hostVisible) {
